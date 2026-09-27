@@ -2,7 +2,7 @@
 
 Part of **Notation Systems' computational instrumentation and evidence infrastructure** for industrial and cyber-physical systems.
 
-[Stack map](https://github.com/giasonpooni/Computational-Instrumentation-Workbench/blob/main/docs/STACK.md) · [Component role and interfaces](docs/STACK_ROLE.md)
+[Stack map](https://github.com/giasonpooni/Notations-Engineering-Terminal/blob/main/docs/STACK.md) · [Component role and interfaces](docs/STACK_ROLE.md)
 
 **Provenance-aware evidence, versioned state, admission, and release management.**
 
@@ -56,7 +56,7 @@ permission and the acquisition explicitly carries `canonicalAdmission: false`.
 Native CIW replay has a separate [candidate-evidence route](docs/INSTRUMENT_CANDIDATE_EVIDENCE.md)
 with fresh evidence/result verification and optional retention as `UNADMITTED`.
 See [admission and serving diagrams](docs/STACK_ROLE.md#admission-and-serving-diagrams)
-and [Diagram atlas](https://github.com/giasonpooni/Computational-Instrumentation-Workbench/blob/main/docs/DIAGRAMS.md).
+and [Diagram atlas](https://github.com/giasonpooni/Notations-Engineering-Terminal/blob/main/docs/DIAGRAMS.md).
 
 ## Stack responsibilities
 
@@ -65,16 +65,41 @@ and [Diagram atlas](https://github.com/giasonpooni/Computational-Instrumentation
 | [Evidence and State Management](https://github.com/giasonpooni/Evidence-and-State-Management) | Retains and governs evidence, time-qualified state, admission and release. This repository also contains its local operational terminal. |
 | [Provenance-Preserving Data Acquisition](https://github.com/giasonpooni/Provenance-Preserving-Data-Acquisition) | Acquires source material and produces observations while preserving source identity, extraction lineage and explicit missingness. Acquisition alone does not admit canonical state. |
 | [Scientific Computation Runtime](https://github.com/giasonpooni/Scientific-Computation-Runtime) | Specifies, dispatches and records declared scientific computations over versioned scientific state. Numerical execution remains separate from information admission. |
+| [Geospatial Systems Compiler (GSC)](https://github.com/giasonpooni/Geospatial-Systems-Compiler) | Separately maintained browser presentation and visualization project, formerly Payload Terminal V0. Its proposed homepage/explorer consumes explicit projections; it does not replace ESM or the workbench. |
 | [Geospatial State Visualization](https://github.com/giasonpooni/Geospatial-State-Visualization) | Presents geographic entities, routes, flows and temporal state through a read-only globe client. A view is a projection, not a separate authority. |
-| [State Estimation Evaluation Testbed](https://github.com/giasonpooni/State-Estimation-Evaluation-Testbed) | Evaluates state reconstruction under declared observation degradation. Early executable contract validators; no evaluation runner or implemented estimator. |
-| [Constraint-Based State Reconciliation](https://github.com/giasonpooni/Constraint-Based-State-Reconciliation) | Specifies reconciliation against declared constraints, with uncertainty and correction diagnostics. Method-neutral scope; specification-stage operations are not implementation claims. |
-| [Computational Instrumentation Workbench](https://github.com/giasonpooni/Computational-Instrumentation-Workbench) | Provides instrument sessions, adapters, inspection and replay. It is the working environment; this repository retains and governs the information those activities reference. |
+| [State Estimation Evaluation Testbed](https://github.com/giasonpooni/State-Estimation-Evaluation-Testbed) | Owns exchange validation, bounded declared-reference evaluation and replay binding; no estimator implementation. Integration scope is tracked separately from the repository's capabilities. |
+| [Constraint-Based State Reconciliation](https://github.com/giasonpooni/Constraint-Based-State-Reconciliation) | Reconciles supplied candidates against declared constraints through a bounded exact-affine operation, retaining uncertainty and correction diagnostics; not a general fusion or admission service. |
+| [Notations Engineering Terminal (CIW)](https://github.com/giasonpooni/Notations-Engineering-Terminal) | Provides the existing instrument sessions, adapters, inspection and replay. It is the working environment; ESM retains and governs the information those activities reference. |
 
 These are component responsibilities, not a claim that every cross-repository
 adapter is connected. The evidence, operation specification, execution attempt,
 result and verification identities remain distinct. A computed result enters
 governed state only through an explicit admission boundary. Naming changes grant
 no new acquisition, execution, redistribution or physical-control authority.
+
+### Current titles and the browser integration
+
+**Notations Engineering Terminal** is the current title of the existing
+Computational Instrumentation Workbench; `ciw` remains its runtime, command and
+contract namespace. **Geospatial Systems Compiler (GSC)** is the current project
+title of the former Payload Terminal V0. GSV remains the geographic inspection
+client while its integration into GSC is developed.
+
+Keep the GSC homepage/explorer separately maintained and deployed. Its first
+ESM integration target is the existing read-only, fixture-scoped projection
+path described in [Projection Fabric](docs/PROJECTION_FABRIC.md): an exact
+release and snapshot binding, explicit record selection, and both time roles.
+The new frontend adapter is a target, not an integration implemented by this
+README change. It must not create another canonical store or widen the current
+projection contract to expose local acquisitions or unadmitted candidates.
+
+Recorded scientific sessions belong to the engineering workbench's result and
+replay boundary. Candidate-evidence review uses ESM's separate existing adapter;
+retention as `UNADMITTED` does not become release or public publication. GSC may
+provide contextual links to exact records and sessions, but links do not grant
+access or execution authority. Public demonstrations require deliberately
+published artifacts, not credentials for private stores. ESM is not a general
+solver dispatcher, and the frontend is not a second workbench.
 
 ## What is actually here
 
@@ -431,7 +456,7 @@ Typecheck also rejects unused locals and parameters. [Codebase consolidation](do
 - `docs/STORAGE.md` — six classes of information, the store each asks for, the invariant each must not break, and the current implementation boundary.
 - `docs/CORRECTION_AND_IDENTITY.md` — downstream invalidation per class of derived artifact, the delivery ledger, as-of as a contract feature, and the identity core with the still-absent cross-line join.
 - `docs/CROSS_LINE_JOIN.md` — the two present join keys run across all three corpora: the three lines and what each carries, the precision rule, the two clocks kept apart, 11 pairs with their outcomes, and why `resolved` is the literal 0.
-- `docs/METERING.md` — the lap, the two halves of a response receipt, the metering boundary, and the federation risk stated as work to do.
+- `docs/METERING.md` — the lap, the two halves of a response receipt that would have to exist before a bill line could point at one.
 - `docs/TERMINAL_PLANE.md` — the control plane another terminal plugs into: a session that names a party, a purpose declared from the corpus's own permitted uses, a scope, an admission or a refusal per call, and a receipt either way.
 - `docs/SPATIAL_DERIVATION.md` — space as resolver, join key, validity clock and inference engine; the cell key bounded by stated uncertainty; the three sensor families and the semantic convergence that is the actual gap.
 - `docs/ESTIMATION.md` — constraints as observations with provenance, the factor graph they live in, the two disciplines written before the first solve, and the four tiers of invariant scoring with the reference channel they must never feed.
