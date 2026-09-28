@@ -1,0 +1,4 @@
+# Research example only; does not change the application's Node dependency graph.
+# Tested with Python 3.13.5. This is not a complete reproducible BLAS environment.
+numpy==2.3.5
+scipy==1.17.0
