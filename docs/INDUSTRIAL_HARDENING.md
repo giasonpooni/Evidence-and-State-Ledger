@@ -11,8 +11,10 @@ transformation, or create an off-host immutable backup.
 
 `doctor CONFIG review|collector|all` is a no-acquisition diagnostic. Review
 readiness requires a configured, non-revoked `RETAINED_REVIEW`, a currently
-valid reader scoped to its digest, the industrial viewer build, an available
-audit tail, and successful reinspection of the exact retained dependencies.
+valid reader scoped to its digest, protected operator configuration and selection
+files, the industrial viewer build, a fully verified audit chain, successful
+reinspection of the exact retained dependencies, a numeric observation, and an
+explicit operator `maxObservationAgeMs` budget that the observation still meets.
 Collector readiness requires an enabled schedule, readable non-blocked journal
 and remaining schedule capacity.
 
@@ -28,8 +30,10 @@ backup. Those gates require evidence or infrastructure outside this repository.
 
 The HTTP listener exposes loopback-only `/healthz` and `/readyz`. Liveness
 means the process can answer. Readiness is stricter and reopens the configured
-active retained review. No paths, credentials or evidence payload are returned
-by either probe.
+active retained review. On SIGTERM/SIGINT the service enters `DRAINING`: readiness
+fails before new data requests are refused, idle connections close, and final
+connections have a bounded drain interval. No paths, credentials or evidence
+payload are returned by either probe.
 
 ## Operations audit
 
@@ -64,6 +68,27 @@ filesystem isolation, empty capabilities, kernel/control-group protections and
 explicit writable state. Remote use still belongs behind separately managed
 TLS/mTLS/SSO infrastructure; do not widen the Node listener.
 
-The refresh service remains oneshot and the external timer remains the trigger.
-Production installation and enabling are operator actions, not performed by
-repository checkout or CI.
+The long-running review service has read-only access to retained refresh/intake
+evidence and write access only to its audit directory. The refresh service
+remains oneshot and retains the broader evidence write surface required for
+acquisition. The external timer remains the trigger. Production installation and
+enabling are operator actions, not performed by repository checkout or CI.
+
+The default CI additionally runs `npm audit --omit=dev --audit-level=high`; high
+or critical advisories in production dependencies are a build failure. Dev-only
+findings remain visible but do not masquerade as production runtime exposure.
+
+## Pinned private replay
+
+The candidate-evidence replay depends on repositories that may be private. CI
+must not fake success when the runner has no permission to clone them. The replay
+workflow always runs its source-pin and strict-JSON adversarial tests. The real
+multi-repository replay runs only when an explicitly provisioned
+`INSTRUMENT_REPLAY_TOKEN` is present; the temporary askpass helper keeps that
+credential out of clone URLs and command arguments.
+
+Without that credential the workflow records `HOLD_EXTERNAL` with
+`AUTHORIZED_PRIVATE_DEPENDENCY_ACCESS_REQUIRED`. This is a successful
+classification of an external prerequisite, not a verified replay. Instrument
+readiness therefore continues to list the pinned replay as an external production
+release gate until an authorized environment executes it successfully.
