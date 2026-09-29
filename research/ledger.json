@@ -326,6 +326,92 @@
       "repositoryRefs": [],
       "evidenceRefs": [],
       "notes": "Refinement prompted by the failure of H-004; not claimed universal."
+    },
+    {
+      "id": "H-005",
+      "kind": "HYPOTHESIS",
+      "title": "A backend-neutral container contract can preserve computational boundary semantics",
+      "statement": "A common container specification can preserve typed boundaries, semantic operations, authority constraints, resource envelopes and telemetry requirements independently of whether an occurrence runs locally, in an OS/container runtime, on HPC, in cloud infrastructure, or through an external provider.",
+      "status": "CANDIDATE",
+      "domains": [
+        "computational-infrastructure"
+      ],
+      "testCorpus": [
+        "local-compute",
+        "containerized-compute",
+        "hpc",
+        "cloud",
+        "external-runtime"
+      ],
+      "repositoryRefs": [],
+      "evidenceRefs": [],
+      "notes": "V1 has contract-level qualification only. Real cross-backend occurrences remain required before stronger generalization."
+    },
+    {
+      "id": "E-005",
+      "kind": "EXPERIMENT",
+      "title": "Container / Experiment Calculus V1 qualification",
+      "statement": "Test typed container boundaries, acyclic nesting, exact schema/unit/frame flows, resource telemetry, explicit uncertainty proxies, and backend-neutral occurrence identity without binding execution or inferring physical theory.",
+      "status": "SUPPORTED",
+      "domains": [
+        "computational-infrastructure"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Systems-Terminal",
+          "revision": "736c7702dafd11a59d9c9b627c43bfbbb63b5670",
+          "workflowRun": "36642029833",
+          "pullRequest": "88"
+        }
+      ],
+      "evidenceRefs": [
+        "github-actions:Notations-Systems-Terminal:36642029833"
+      ],
+      "notes": "25 tests passed on Ubuntu and Windows; this is an engineering-contract experiment, not FEP evidence."
+    },
+    {
+      "id": "O-005",
+      "kind": "OBSERVATION",
+      "title": "Container telemetry kept transport accounting separate from workload-defined uncertainty",
+      "statement": "The qualified Container Calculus kept byte/item transport ratios distinct from explicitly declared posterior-entropy reduction, retained unknown GPU/energy/human metrics as unknown, and did not infer a universal information score.",
+      "status": "SUPPORTED",
+      "domains": [
+        "computational-infrastructure"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Systems-Terminal",
+          "revision": "736c7702dafd11a59d9c9b627c43bfbbb63b5670",
+          "workflowRun": "36642029833",
+          "pullRequest": "88"
+        }
+      ],
+      "evidenceRefs": [
+        "github-actions:Notations-Systems-Terminal:36642029833"
+      ],
+      "notes": "Supports a clean engineering boundary between resource transport and workload-specific information measures."
+    },
+    {
+      "id": "H-006",
+      "kind": "HYPOTHESIS",
+      "title": "Adaptive multi-scale precision can dominate maximal precision for bounded decisions",
+      "statement": "For a fixed decision task and declared acceptance/validity constraints, there exist workloads where a lower-cost representation or scale preserves the required outputs, invariants, epistemic distinctions and verification while consuming fewer scarce resources than a uniformly higher-fidelity representation.",
+      "status": "OPEN",
+      "domains": [
+        "multi-scale-modeling"
+      ],
+      "testCorpus": [
+        "materials",
+        "fluids",
+        "geometry",
+        "state-estimation",
+        "manufacturing"
+      ],
+      "repositoryRefs": [],
+      "evidenceRefs": [],
+      "notes": "Open hypothesis. It should be tested with same-task full-vs-reduced representation experiments; no claim is made that lower fidelity is always sufficient."
     }
   ],
   "relations": [
@@ -433,6 +519,20 @@
       "target": "P-002",
       "kind": "TESTS",
       "notes": "Calibration explicitly propagates joint uncertainty."
+    },
+    {
+      "relationId": "R-016",
+      "source": "E-005",
+      "target": "H-005",
+      "kind": "TESTS",
+      "notes": "Container Calculus V1 tests the backend-neutral contract at schema/telemetry level."
+    },
+    {
+      "relationId": "R-017",
+      "source": "O-005",
+      "target": "H-005",
+      "kind": "SUPPORTS",
+      "notes": "Telemetry qualification supports separation of boundary semantics from one runtime/backend."
     }
   ],
   "claims": {
