@@ -18,5 +18,12 @@
   "authorityKeys": [],
   "distributionConfig": "/etc/notation/industrial-distribution.json",
   "staticRoot": "/opt/notation/gsv/dist-industrial",
-  "port": 8081
+  "port": 8081,
+  "readinessPolicy": {
+    "schema": "payload.industrial-readiness-policy.v1",
+    "maxObservationAgeMs": 600000,
+    "requireRefreshEnabled": true,
+    "requireProtectedFiles": true,
+    "requireActiveCredential": true
+  }
 }
