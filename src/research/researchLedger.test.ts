@@ -93,7 +93,9 @@ describe('Notation Systems research ledger', () => {
 
   it('requires exact repository revisions rather than branch names', () => {
     const value = clone();
-    value.records[0].repositoryRefs[0].revision = 'main';
+    const experiment = value.records.find((row) => row.id === 'E-001');
+    if (!experiment) throw new Error('missing E-001 fixture');
+    experiment.repositoryRefs[0].revision = 'main';
     expect(() => validateResearchLedger(value)).toThrow(/exact commit-like/);
   });
 });
