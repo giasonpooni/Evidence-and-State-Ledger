@@ -29,7 +29,7 @@ jobs:
       - name: CARAVAN bounded domain tests
         run: npx vitest run src/domain/caravanDesk.test.ts --reporter=verbose
       - name: Build and execute synthetic decision specimen
-        run: npm run caravan:po-exceptions -- examples/caravan-po-exceptions.json > caravan-result.json
+        run: npm run --silent caravan:po-exceptions -- examples/caravan-po-exceptions.json > caravan-result.json
       - name: Require commercial-wedge fixture behavior
         run: |
           node - <<'NODE'
@@ -44,6 +44,7 @@ jobs:
           if (!critical || critical.severity !== 'CRITICAL') throw new Error('PO-4738 expected critical');
           NODE
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
         with:
           name: caravan-po-exception-evidence
           if-no-files-found: error
