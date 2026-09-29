@@ -37,8 +37,8 @@ const loginScript="document.querySelector('form').onsubmit=async e=>{e.preventDe
 const loginHtml=`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>ESM internal access</title><link rel="icon" href="data:,"><h1>Industrial source review</h1><p>Authenticated internal access. A credential does not admit or release evidence.</p><form><label>Access token <input type="password" autocomplete="off" maxlength="47" required></label><button>Open review</button></form><output></output><script>${loginScript}</script>`;
 const safeCode=(error:unknown)=>error instanceof Error&&/^[A-Z0-9_]{3,80}$/.test(error.message)?error.message:'REQUEST_FAILED';
 
-export function createDistributionServer(options:{configFile:string;staticRoot:string;objectRoot:string;auditRoot:string;now?:()=>string}){
-  const now=options.now??(()=>new Date().toISOString());let boundPort=0;let count=0,windowStart=performance.now();
+export function createDistributionServer(options:{configFile:string;staticRoot:string;objectRoot:string;auditRoot:string;now?:()=>string;maxObservationAgeMs?:number}){
+  const now=options.now??(()=>new Date().toISOString());let boundPort=0;let count=0,windowStart=performance.now(),draining=false;
   const metrics={requests:0,authDenied:0,delivered:0,refused:0,readinessReady:0,readinessHold:0};
   const server=createServer({maxHeaderSize:8192},async(req,res)=>{
     metrics.requests++;
@@ -51,13 +51,15 @@ export function createDistributionServer(options:{configFile:string;staticRoot:s
       check(!req.headers.origin||req.headers.origin===`http://${host}`,'CROSS_ORIGIN');
       check(!req.headers['sec-fetch-site']||['same-origin','none'].includes(String(req.headers['sec-fetch-site'])),'CROSS_ORIGIN');
       const path=req.url??'';check(path.length<=512&&!path.includes('?')&&!path.includes('%')&&!path.includes('..'),'INVALID_PATH');
-      if(path==='/healthz'&&req.method==='GET'){res.setHeader('Content-Type','application/json');res.end('{"schema":"payload.industrial-health.v1","status":"LIVE"}');return;}
+      if(path==='/healthz'&&req.method==='GET'){res.setHeader('Content-Type','application/json');res.end(JSON.stringify({schema:'payload.industrial-health.v1',status:draining?'DRAINING':'LIVE'}));return;}
       if(path==='/readyz'&&req.method==='GET'){
-        const at=instant.parse(now()),ready=assessReviewReadiness({distributionConfig:options.configFile,staticRoot:options.staticRoot,auditRoot:options.auditRoot,at});
+        if(draining){metrics.readinessHold++;res.statusCode=503;res.setHeader('Content-Type','application/json');res.end(JSON.stringify({schema:'payload.industrial-review-readiness.v1',status:'HOLD',checks:[{id:'service-state',state:'HOLD',detailCode:'SERVICE_DRAINING'}]}));return;}
+        const at=instant.parse(now()),ready=assessReviewReadiness({distributionConfig:options.configFile,staticRoot:options.staticRoot,auditRoot:options.auditRoot,at,maxObservationAgeMs:options.maxObservationAgeMs});
         if(ready.status==='READY')metrics.readinessReady++;else metrics.readinessHold++;
         res.statusCode=ready.status==='READY'?200:503;res.setHeader('Content-Type','application/json');
         res.end(JSON.stringify({schema:ready.schema,status:ready.status,checks:ready.checks}));return;
       }
+      if(draining){deny(503);return;}
       if(path==='/login'&&req.method==='GET'){
         res.setHeader('Content-Type','text/html; charset=utf-8');res.setHeader('Content-Security-Policy',`default-src 'none'; img-src data:; script-src 'sha256-${createHash('sha256').update(loginScript).digest('base64')}'; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'`);res.end(loginHtml);return;
       }
@@ -133,7 +135,8 @@ export function createDistributionServer(options:{configFile:string;staticRoot:s
   });
   server.requestTimeout=15000;server.headersTimeout=10000;server.keepAliveTimeout=5000;
   server.on('listening',()=>{const address=server.address();if(address&&typeof address!=='string')boundPort=address.port;});
-  return {server,metrics,listen:(port=0)=>{check(Number.isInteger(port)&&port>=0&&port<=65535,'INVALID_PORT');return server.listen(port,'127.0.0.1');}};
+  return {server,metrics,beginDrain:()=>{draining=true;server.closeIdleConnections();},isDraining:()=>draining,
+    listen:(port=0)=>{check(Number.isInteger(port)&&port>=0&&port<=65535,'INVALID_PORT');return server.listen(port,'127.0.0.1');}};
 }
 
 export function credentialForToken(token:string,recipientId:string,artifactDigest:string,notBefore:string,notAfter:string){
