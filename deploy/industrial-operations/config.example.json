@@ -18,5 +18,8 @@
   "authorityKeys": [],
   "distributionConfig": "/etc/notation/industrial-distribution.json",
   "staticRoot": "/opt/notation/gsv/dist-industrial",
-  "port": 8081
+  "port": 8081,
+  "reviewReadiness": {
+    "maxObservationAgeMs": 600000
+  }
 }
