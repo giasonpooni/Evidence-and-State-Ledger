@@ -11,7 +11,7 @@ import { inspectRefreshResult } from '../src/industrial-operations/refresh-resul
 import { prepareRefreshQuarantine, quarantineRefresh } from '../src/industrial-operations/refresh-quarantine';
 import { fixedRefreshPipeline, REFRESH_OPERATION } from '../src/industrial-operations/pipeline';
 import { createDistributionServer, serverConfigSchema } from '../src/industrial-operations/distribution';
-import { operationsConfigSchema } from '../src/industrial-operations/operations-config';
+import { operationsConfigSchema, protectedConfigFile } from '../src/industrial-operations/operations-config';
 import { assessReviewReadiness, assessCollectorReadiness, assessInstrumentReadiness } from '../src/industrial-operations/readiness';
 import { buildIntegrityManifest, verifyIntegrityManifest } from '../src/industrial-operations/integrity-manifest';
 import { LIMIT, type AuthorityKey } from '../src/industrial-operations/authority';
@@ -36,7 +36,8 @@ async function main(){
     result=quarantineRefresh({root:c.root,schedule:c.schedule,operation:REFRESH_OPERATION,authorityKeys:keys,at,request:json(requestFile),approval:json(approvalFile)});
   }else if(command==='doctor'){
     if(!requestFile||approvalFile||!['review','collector','all'].includes(requestFile))throw new Error('INVALID_ARGUMENTS');
-    result=requestFile==='review'?assessReviewReadiness({distributionConfig:c.distributionConfig,staticRoot:c.staticRoot,auditRoot:c.auditRoot,at}):
+    if(!protectedConfigFile(configFile))throw new Error('OPERATIONS_CONFIG_PERMISSIONS_UNSAFE');
+    result=requestFile==='review'?assessReviewReadiness({distributionConfig:c.distributionConfig,staticRoot:c.staticRoot,auditRoot:c.auditRoot,at,maxObservationAgeMs:c.reviewReadiness?.maxObservationAgeMs}):
       requestFile==='collector'?assessCollectorReadiness(c,at):assessInstrumentReadiness(c,at);
     const status=requestFile==='all'?(result as {internalInstrument:string}).internalInstrument:(result as {status:string}).status;
     if(status!=='READY')process.exitCode=2;
@@ -48,9 +49,15 @@ async function main(){
     result=verifyIntegrityManifest({refresh:c.root,intake:c.intakeRoot,audit:c.auditRoot,static:c.staticRoot},json(requestFile));
     if((result as {status:string}).status!=='MATCH')process.exitCode=2;
   }else if(command==='serve'){if(requestFile||approvalFile)throw new Error('INVALID_ARGUMENTS');serverConfigSchema.parse(json(c.distributionConfig));
-    const service=createDistributionServer({configFile:c.distributionConfig,staticRoot:c.staticRoot,objectRoot:c.objectRoot,auditRoot:c.auditRoot});
+    if(!protectedConfigFile(configFile))throw new Error('OPERATIONS_CONFIG_PERMISSIONS_UNSAFE');
+    const preflight=assessReviewReadiness({distributionConfig:c.distributionConfig,staticRoot:c.staticRoot,auditRoot:c.auditRoot,at,maxObservationAgeMs:c.reviewReadiness?.maxObservationAgeMs});
+    if(preflight.status!=='READY')throw new Error('INSTRUMENT_NOT_READY');
+    const service=createDistributionServer({configFile:c.distributionConfig,staticRoot:c.staticRoot,objectRoot:c.objectRoot,auditRoot:c.auditRoot,maxObservationAgeMs:c.reviewReadiness?.maxObservationAgeMs});
     service.listen(c.port);await once(service.server,'listening');
-    console.log(JSON.stringify({status:'AUTHENTICATED_LOOPBACK_LISTENER',port:c.port,login:'/login',health:'/healthz',readiness:'/readyz',metrics:'/metrics'}));return;
+    let stopping=false;const shutdown=()=>{if(stopping)return;stopping=true;service.beginDrain();const force=setTimeout(()=>service.server.closeAllConnections(),10000);force.unref();service.server.close(()=>clearTimeout(force));};
+    process.once('SIGTERM',shutdown);process.once('SIGINT',shutdown);
+    console.log(JSON.stringify({status:'AUTHENTICATED_LOOPBACK_LISTENER',port:c.port,login:'/login',health:'/healthz',readiness:'/readyz',metrics:'/metrics'}));
+    await once(service.server,'close');return;
   }else {if(!requestFile)throw new Error('REQUEST_REQUIRED');const request=json(requestFile);
     if(command==='qualify'&&!approvalFile)result=qualifyAdmission(request,c.intakeRoot,at);
     else if(command==='prepare-release'&&!approvalFile)result=await prepareInternalRelease(request,c.objectRoot,at);
