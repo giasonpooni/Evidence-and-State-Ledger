@@ -15,6 +15,7 @@ Restart=on-failure
 RestartSec=5
 TimeoutStartSec=30
 TimeoutStopSec=20
+KillSignal=SIGTERM
 NoNewPrivileges=true
 PrivateTmp=true
 PrivateDevices=true
@@ -33,9 +34,8 @@ RestrictSUIDSGID=true
 CapabilityBoundingSet=
 AmbientCapabilities=
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
-ReadOnlyPaths=/opt/notation/esm /opt/notation/gsv /etc/notation
-ReadWritePaths=/var/lib/notation/industrial-operations
-StateDirectory=notation/industrial-operations
+ReadOnlyPaths=/opt/notation/esm /opt/notation/gsv /etc/notation /var/lib/notation/industrial-operations/refresh /var/lib/notation/industrial-operations/intake
+ReadWritePaths=/var/lib/notation/industrial-operations/audit
 Environment=NEXT_TELEMETRY_DISABLED=1
 
 [Install]
