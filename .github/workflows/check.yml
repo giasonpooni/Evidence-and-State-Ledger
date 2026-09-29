@@ -97,43 +97,6 @@ jobs:
           fi
 
 
-  dependency-refresh:
-    name: temporary patched dependency lock
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    timeout-minutes: 8
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22.13'
-          cache: npm
-      - run: npm ci
-      - name: Resolve patched Next production dependency
-        run: |
-          npm install next@16.3.7 --save-exact --package-lock-only --ignore-scripts
-          npm audit --omit=dev --audit-level=high
-      - name: Commit exact generated lock files
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add package.json package-lock.json
-          if ! git diff --cached --quiet; then
-            git commit -m 'chore: patch Next production dependency to 16.3.7'
-            git fetch origin feat/industrial-runtime-hardening-v1-20260929
-            git rebase origin/feat/industrial-runtime-hardening-v1-20260929
-            git push origin HEAD:feat/industrial-runtime-hardening-v1-20260929
-          fi
-      - uses: actions/upload-artifact@v4
-        with:
-          name: patched-package-lock-${{ github.sha }}
-          path: |
-            package.json
-            package-lock.json
-          retention-days: 1
-          if-no-files-found: error
-
   browser:
     name: browser tests (desktop and Pixel 7)
     runs-on: ubuntu-latest
