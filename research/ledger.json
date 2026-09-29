@@ -483,6 +483,71 @@
       "repositoryRefs": [],
       "evidenceRefs": [],
       "notes": "Open regional/testbed hypothesis. Canada/Montréal–Toronto is intended to stress industrial physical systems; Bordeaux/Nouvelle-Aquitaine is intended to stress agro-food, agriculture, energy and thermal/environmental systems. No geographic or universal transfer claim is established yet."
+    },
+    {
+      "id": "H-008",
+      "kind": "HYPOTHESIS",
+      "title": "Local typed intervention can bound recomputation by dependency closure",
+      "statement": "For a typed computational dependency graph, a local immutable intervention can be evaluated by recomputing the target and declared descendants while reusing unaffected retained results, with the resulting delta exposing actual changed outputs separately from mere dependency reachability.",
+      "status": "SUPPORTED",
+      "domains": [
+        "scientific-computing"
+      ],
+      "testCorpus": [
+        "scientific-computing",
+        "creative-production",
+        "energy-network",
+        "state-estimation"
+      ],
+      "repositoryRefs": [],
+      "evidenceRefs": [],
+      "notes": "Currently supported only by the built-in oscillator workload. Cross-domain Needle experiments remain required."
+    },
+    {
+      "id": "E-007",
+      "kind": "EXPERIMENT",
+      "title": "Needle V1 oscillator selective-recomputation qualification",
+      "statement": "Change one retained oscillator analysis parameter q→v, compute dependency descendants, rerun only the two-node closure, reuse an independent energy-statistics branch, and retain a typed output delta.",
+      "status": "SUPPORTED",
+      "domains": [
+        "scientific-computing"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Systems-Terminal",
+          "revision": "c123a1b8d5663d035cb055403de46a4b12ca0fc0",
+          "workflowRun": "36644807789",
+          "pullRequest": "90"
+        }
+      ],
+      "evidenceRefs": [
+        "github-actions:Notations-Systems-Terminal:36644807789"
+      ],
+      "notes": "23 focused tests passed on Ubuntu and Windows."
+    },
+    {
+      "id": "O-007",
+      "kind": "OBSERVATION",
+      "title": "Needle reused an unaffected branch and separated dependency from observed change",
+      "statement": "The oscillator Needle reran statistics and its declared spectrum descendant, reused independent energy statistics without another execution, observed changed statistics data, and observed unchanged spectrum data despite recomputation.",
+      "status": "SUPPORTED",
+      "domains": [
+        "scientific-computing"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Systems-Terminal",
+          "revision": "c123a1b8d5663d035cb055403de46a4b12ca0fc0",
+          "workflowRun": "36644807789",
+          "pullRequest": "90"
+        }
+      ],
+      "evidenceRefs": [
+        "github-actions:Notations-Systems-Terminal:36644807789"
+      ],
+      "notes": "Supports selective recomputation but explicitly does not establish physical causality."
     }
   ],
   "relations": [
@@ -618,6 +683,20 @@
       "target": "H-003",
       "kind": "SUPPORTS",
       "notes": "Required outputs/contracts/evidence/runtime were preserved under query-conditioned reduction in the oscillator workload."
+    },
+    {
+      "relationId": "R-020",
+      "source": "E-007",
+      "target": "H-008",
+      "kind": "TESTS",
+      "notes": "Needle V1 tests local parameter intervention and dependency-closure recomputation on a real NET provider graph."
+    },
+    {
+      "relationId": "R-021",
+      "source": "O-007",
+      "target": "H-008",
+      "kind": "SUPPORTS",
+      "notes": "Observed reuse and delta separation support the bounded selective-recomputation hypothesis."
     }
   ],
   "claims": {
