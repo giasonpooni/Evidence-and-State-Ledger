@@ -412,6 +412,55 @@
       "repositoryRefs": [],
       "evidenceRefs": [],
       "notes": "Open hypothesis. It should be tested with same-task full-vs-reduced representation experiments; no claim is made that lower fidelity is always sufficient."
+    },
+    {
+      "id": "E-006",
+      "kind": "EXPERIMENT",
+      "title": "Same-task oscillator full-vs-NISE-reduced execution",
+      "statement": "Execute the same retained oscillator analysis task through a broad eight-operation baseline and a NISE-selected two-operation graph; require identical required statistics/periodogram outputs, contracts, source evidence identity and provider runtime before comparing resource use.",
+      "status": "SUPPORTED",
+      "domains": [
+        "physical-system"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Systems-Terminal",
+          "revision": "11dd1dc05f1c05cf92d23c426fe082d7a878a2ec",
+          "workflowRun": "36642629424",
+          "pullRequest": "89"
+        }
+      ],
+      "evidenceRefs": [
+        "github-actions:Notations-Systems-Terminal:36642629424",
+        "artifact:oscillator-representation-reduction-ubuntu-24.04:11066404148",
+        "artifact:oscillator-representation-reduction-windows-latest:11066997786"
+      ],
+      "notes": "Controlled redundancy experiment on the real built-in oscillator provider; wall-time observations are retained but not generalized."
+    },
+    {
+      "id": "O-006",
+      "kind": "OBSERVATION",
+      "title": "Query-conditioned reduction preserved required oscillator results while executing fewer operations",
+      "statement": "Across Ubuntu and Windows, NISE reduced the source catalog from 9 nodes to a 3-node schematic and NET execution from 8 operations to 2 while preserving the required statistics/periodogram data, operation contracts, source-evidence identity within each trial pair and provider runtime identity.",
+      "status": "SUPPORTED",
+      "domains": [
+        "physical-system"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Systems-Terminal",
+          "revision": "11dd1dc05f1c05cf92d23c426fe082d7a878a2ec",
+          "workflowRun": "36642629424",
+          "pullRequest": "89"
+        }
+      ],
+      "evidenceRefs": [
+        "artifact:oscillator-representation-reduction-ubuntu-24.04:11066404148",
+        "artifact:oscillator-representation-reduction-windows-latest:11066997786"
+      ],
+      "notes": "Operation-call ratio was 0.25. Hosted wall-time ratios were ~0.258 and ~0.244 but are not treated as stable performance claims."
     }
   ],
   "relations": [
@@ -533,6 +582,20 @@
       "target": "H-005",
       "kind": "SUPPORTS",
       "notes": "Telemetry qualification supports separation of boundary semantics from one runtime/backend."
+    },
+    {
+      "relationId": "R-018",
+      "source": "E-006",
+      "target": "H-003",
+      "kind": "TESTS",
+      "notes": "Adds a physical-system same-task fidelity test to the NISE reduction hypothesis."
+    },
+    {
+      "relationId": "R-019",
+      "source": "O-006",
+      "target": "H-003",
+      "kind": "SUPPORTS",
+      "notes": "Required outputs/contracts/evidence/runtime were preserved under query-conditioned reduction in the oscillator workload."
     }
   ],
   "claims": {
