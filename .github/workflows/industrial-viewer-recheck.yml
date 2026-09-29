@@ -34,13 +34,6 @@ jobs:
         run: |
           npm ci --prefix esm
           npm ci --prefix gsv
-      - name: Resolve patched production dependency lock
-        run: |
-          npm install --prefix esm next@16.3.7 --save-exact --package-lock-only --ignore-scripts
-          npm ci --prefix esm
-          npm audit --prefix esm --omit=dev --audit-level=high
-          mkdir -p qualification/public/dependency-refresh
-          cp esm/package.json esm/package-lock.json qualification/public/dependency-refresh/
       - name: Preserved ESM checks and actual-server bundling
         working-directory: esm
         run: |
