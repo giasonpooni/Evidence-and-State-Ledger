@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { credentialForToken } from './distribution';
@@ -46,7 +46,7 @@ describe('industrial readiness gate',()=>{
   it('uses the explicit readiness age budget rather than the viewer display label',()=>{const f=fixture();healthyMocks(600001);const r=assessIndustrialReadiness(f.options);expect(r.status).toBe('NOT_READY');expect(r.reasonCodes).toContain('MEASUREMENT_TOO_OLD');});
   it('refuses an all-null measurement state',()=>{const f=fixture();healthyMocks();(refreshResult.inspectRefreshResult as any).mockReturnValueOnce({...refreshResult.inspectRefreshResult({} as any),freshness:{observationAgeMs:null}});const r=assessIndustrialReadiness(f.options);expect(r.status).toBe('NOT_READY');expect(r.reasonCodes).toContain('NO_NUMERIC_OBSERVATION');});
   it('refuses group/world-readable protected configuration',()=>{const f=fixture();healthyMocks();if(process.platform!=='win32')chmodSync(f.operationsFile,0o644);const r=assessIndustrialReadiness(f.options);if(process.platform!=='win32')expect(r.reasonCodes).toContain('CONFIG_FILE_UNSAFE');});
-  it('refuses a disabled collector when policy requires it',()=>{const f=fixture();healthyMocks();f.options.schedule={...schedule,enabled:false};const selected=JSON.parse(require('node:fs').readFileSync(f.selectionFile,'utf8'));selected.schedule=f.options.schedule;writeFileSync(f.selectionFile,JSON.stringify(selected),{mode:0o600});const r=assessIndustrialReadiness(f.options);expect(r.reasonCodes).toContain('REFRESH_DISABLED');});
+  it('refuses a disabled collector when policy requires it',()=>{const f=fixture();healthyMocks();f.options.schedule={...schedule,enabled:false};const selected=JSON.parse(readFileSync(f.selectionFile,'utf8'));selected.schedule=f.options.schedule;writeFileSync(f.selectionFile,JSON.stringify(selected),{mode:0o600});const r=assessIndustrialReadiness(f.options);expect(r.reasonCodes).toContain('REFRESH_DISABLED');});
   it('refuses when no currently valid reader covers the active digest',()=>{const f=fixture();healthyMocks();f.distribution.credentials[0].revoked=true;writeFileSync(f.distributionFile,JSON.stringify(f.distribution),{mode:0o600});const r=assessIndustrialReadiness(f.options);expect(r.reasonCodes).toContain('NO_ACTIVE_READER');});
   it('refuses an artifact-only review as industrially ready retained evidence',()=>{const f=fixture();healthyMocks();f.distribution.resources[0].kind='REVIEW';f.distribution.resources[0].requestFile=null;writeFileSync(f.distributionFile,JSON.stringify(f.distribution),{mode:0o600});const r=assessIndustrialReadiness(f.options);expect(r.reasonCodes).toContain('ACTIVE_REVIEW_NOT_RETAINED');});
 });
