@@ -1,0 +1,10 @@
+[Unit]
+Description=External hourly trigger for the bounded ESM refresh planner
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+Unit=industrial-refresh.service
+
+[Install]
+WantedBy=timers.target

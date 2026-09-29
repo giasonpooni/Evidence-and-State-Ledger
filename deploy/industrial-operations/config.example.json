@@ -1,0 +1,22 @@
+{
+  "root": "/var/lib/notation/industrial-operations/refresh",
+  "intakeRoot": "/var/lib/notation/industrial-operations/intake",
+  "objectRoot": "/var/lib/notation/industrial-operations/intake/objects",
+  "auditRoot": "/var/lib/notation/industrial-operations/audit",
+  "gscRoot": "/opt/notation/gsc",
+  "pythonExecutable": "/opt/notation/raster/bin/python",
+  "schedule": {
+    "schema": "payload.capture-schedule.v1",
+    "scheduleId": "operator-replace-this-disabled-schedule",
+    "sourceId": "industrial-noaa-usgs",
+    "minimumIntervalHours": 1,
+    "notBefore": "2026-09-29T00:00:00.000Z",
+    "notAfter": "2026-09-30T00:00:00.000Z",
+    "maxRuns": 2,
+    "enabled": false
+  },
+  "authorityKeys": [],
+  "distributionConfig": "/etc/notation/industrial-distribution.json",
+  "staticRoot": "/opt/notation/gsv/dist-industrial",
+  "port": 8081
+}

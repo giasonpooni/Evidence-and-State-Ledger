@@ -1,0 +1,22 @@
+[Unit]
+Description=One evidence-retained industrial source refresh
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=notation
+Group=notation
+UMask=0077
+WorkingDirectory=/opt/notation/esm
+ExecStart=/usr/bin/node /opt/notation/esm/.stamp/industrial-operations.mjs refresh /etc/notation/industrial-operations.json
+TimeoutStartSec=600
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+StateDirectory=notation/industrial-operations
+ReadWritePaths=/var/lib/notation/industrial-operations
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=NEXT_TELEMETRY_DISABLED=1

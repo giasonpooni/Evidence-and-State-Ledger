@@ -1,0 +1,92 @@
+name: Industrial operations qualification
+on:
+  push:
+    branches: [feat/industrial-operations-v1-20260929]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: industrial-operations-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          path: esm
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: giasonpooni/Geospatial-Systems-Compiler
+          ref: 98bd33bcca22efabe24de8be42642dc561fcfd17
+          path: gsc
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: giasonpooni/Geospatial-State-Visualization
+          ref: 3dc09db6162ab0c40c056707af70198ef98b90be
+          path: gsv
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: esm/package-lock.json
+      - name: Locked dependencies
+        run: |
+          npm ci --prefix esm
+          npm ci --prefix gsc
+          npm ci --prefix gsv
+      - name: Types, lint and real SQL/HTTP regression tests
+        working-directory: esm
+        run: |
+          mkdir -p ../qualification .stamp
+          npx tsc -p industrial-operations.tsconfig.json
+          npx eslint src/industrial-operations scripts/industrial-operations.entry.ts scripts/qualify-industrial-operations.entry.ts
+          npx vitest run --config industrial-operations.vitest.mts --reporter=default --reporter=json --outputFile=../qualification/tests.json
+          npx esbuild scripts/industrial-operations.entry.ts --bundle --platform=node --format=esm --packages=external --alias:@=./src --outfile=.stamp/industrial-operations.mjs
+          npx esbuild scripts/qualify-industrial-operations.entry.ts --bundle --platform=node --format=esm --packages=external --alias:@=./src --outfile=.stamp/qualify-industrial-operations.mjs
+          npx esbuild src/industrial-operations/distribution.ts --bundle --platform=node --format=esm --packages=external --alias:@=./src --outfile=.stamp/industrial-distribution.mjs
+      - name: Raster environment
+        run: |
+          python3 -m venv raster
+          raster/bin/python -m pip install rasterio==1.4.3 numpy==2.2.6
+      - name: Real retained refresh and admission-refusal qualification
+        run: |
+          node esm/.stamp/qualify-industrial-operations.mjs --live "$GITHUB_WORKSPACE/gsc" "$GITHUB_WORKSPACE/raster/bin/python" "$GITHUB_WORKSPACE/qualification/live"
+      - name: Build unchanged GSV industrial viewer with exact refreshed bytes
+        run: |
+          mkdir -p gsv/.industrial-data
+          cp qualification/live/view/*.json gsv/.industrial-data/
+          cd gsv
+          npm run build:industrial
+      - name: Authenticated real-data browser qualification
+        working-directory: esm
+        run: |
+          npx playwright install --with-deps chromium
+          node scripts/test-industrial-distribution-browser.mjs ../gsv/dist-industrial ../qualification/live/view ../qualification/browser
+      - name: Retain verification identities and evidence (private)
+        if: always()
+        run: |
+          mkdir -p qualification/pins
+          for repo in esm gsc gsv; do
+            git -C "$repo" rev-parse HEAD > "qualification/pins/$repo-commit.txt"
+            git -C "$repo" rev-parse HEAD^{tree} > "qualification/pins/$repo-tree.txt"
+          done
+          node --version > qualification/pins/node.txt
+          test ! -x raster/bin/python || raster/bin/python -m pip freeze > qualification/pins/raster.txt
+          git -C esm archive --format=tar.gz HEAD src/industrial-operations scripts/industrial-operations.entry.ts scripts/qualify-industrial-operations.entry.ts scripts/test-industrial-distribution-browser.mjs docs/INDUSTRIAL_OPERATIONS.md deploy/industrial-operations industrial-operations.vitest.mts industrial-operations.tsconfig.json .github/workflows/industrial-operations.yml > qualification/operations-private-source.tar.gz
+          test ! -d gsv/dist-industrial || tar -czf qualification/industrial-viewer.tar.gz -C gsv dist-industrial
+          find qualification -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > qualification/SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: industrial-operations-${{ github.sha }}
+          path: qualification/
+          retention-days: 7
+          if-no-files-found: error

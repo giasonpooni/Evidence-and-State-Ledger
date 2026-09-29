@@ -1,0 +1,37 @@
+/** Explicit local CLI. No server, collector or admission is activated by installation. */
+import { dirname, basename } from 'node:path';
+import { once } from 'node:events';
+import { readImmutableFile } from '../src/data-os/local-files';
+import { z } from 'zod';
+import { parseReplayJson } from '../src/observation/json';
+import { qualifyAdmission, executeAdmission } from '../src/industrial-operations/admission';
+import { prepareInternalRelease, publishInternalRelease } from '../src/industrial-operations/release';
+import { refreshOnce } from '../src/industrial-operations/refresh';
+import { fixedRefreshPipeline, REFRESH_OPERATION } from '../src/industrial-operations/pipeline';
+import { createDistributionServer, serverConfigSchema } from '../src/industrial-operations/distribution';
+import { LIMIT, type AuthorityKey } from '../src/industrial-operations/authority';
+const configSchema=z.object({root:z.string().min(1),intakeRoot:z.string().min(1),objectRoot:z.string().min(1),auditRoot:z.string().min(1),
+  gscRoot:z.string().min(1),pythonExecutable:z.string().min(1),schedule:z.unknown(),authorityKeys:z.array(z.unknown()),
+  distributionConfig:z.string().min(1),staticRoot:z.string().min(1),port:z.number().int().min(1024).max(65535)}).strict();
+function json(path:string){const bytes=readImmutableFile(dirname(path),[basename(path)],LIMIT);if(!bytes)throw new Error('FILE_UNAVAILABLE');return parseReplayJson(bytes,LIMIT);}
+async function main(){
+  const [command,configFile,requestFile,approvalFile,...extra]=process.argv.slice(2);
+  if(command==='--help'||!command){console.log('industrial-operations qualify|admit|prepare-release|release CONFIG REQUEST [APPROVAL]\nindustrial-operations refresh|serve CONFIG');return;}
+  if(!configFile||extra.length)throw new Error('INVALID_ARGUMENTS');const c=configSchema.parse(json(configFile));
+  const keys=c.authorityKeys as AuthorityKey[],at=new Date().toISOString();let result:unknown;
+  if(command==='refresh'){if(requestFile||approvalFile)throw new Error('INVALID_ARGUMENTS');
+    result=await refreshOnce({root:c.root,schedule:c.schedule,operation:REFRESH_OPERATION,now:()=>new Date().toISOString(),execute:fixedRefreshPipeline(c)});
+  }else if(command==='serve'){if(requestFile||approvalFile)throw new Error('INVALID_ARGUMENTS');serverConfigSchema.parse(json(c.distributionConfig));
+    const service=createDistributionServer({configFile:c.distributionConfig,staticRoot:c.staticRoot,objectRoot:c.objectRoot,auditRoot:c.auditRoot});
+    service.listen(c.port);await once(service.server,'listening');
+    console.log(JSON.stringify({status:'AUTHENTICATED_LOOPBACK_LISTENER',port:c.port,login:'/login'}));return;
+  }else {if(!requestFile)throw new Error('REQUEST_REQUIRED');const request=json(requestFile);
+    if(command==='qualify'&&!approvalFile)result=qualifyAdmission(request,c.intakeRoot,at);
+    else if(command==='prepare-release'&&!approvalFile)result=await prepareInternalRelease(request,c.objectRoot,at);
+    else if(command==='admit'&&approvalFile)result=await executeAdmission(request,json(approvalFile),keys,c.intakeRoot,c.auditRoot,at);
+    else if(command==='release'&&approvalFile)result=await publishInternalRelease(request,json(approvalFile),keys,c.objectRoot,c.auditRoot,at);
+    else throw new Error('INVALID_ARGUMENTS');
+  }
+  console.log(JSON.stringify(result,null,2));
+}
+void main().catch(error=>{const message=error instanceof Error&&/^[A-Z_]{3,80}$/.test(error.message)?error.message:'OPERATION_REFUSED';console.error(JSON.stringify({error:message}));process.exitCode=1;});
