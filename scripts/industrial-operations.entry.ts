@@ -7,6 +7,8 @@ import { parseReplayJson } from '../src/observation/json';
 import { qualifyAdmission, executeAdmission } from '../src/industrial-operations/admission';
 import { prepareInternalRelease, publishInternalRelease } from '../src/industrial-operations/release';
 import { refreshOnce } from '../src/industrial-operations/refresh';
+import { inspectRefresh } from '../src/industrial-operations/refresh-state';
+import { prepareRefreshQuarantine, quarantineRefresh } from '../src/industrial-operations/refresh-quarantine';
 import { fixedRefreshPipeline, REFRESH_OPERATION } from '../src/industrial-operations/pipeline';
 import { createDistributionServer, serverConfigSchema } from '../src/industrial-operations/distribution';
 import { LIMIT, type AuthorityKey } from '../src/industrial-operations/authority';
@@ -16,11 +18,18 @@ const configSchema=z.object({root:z.string().min(1),intakeRoot:z.string().min(1)
 function json(path:string){const bytes=readImmutableFile(dirname(path),[basename(path)],LIMIT);if(!bytes)throw new Error('FILE_UNAVAILABLE');return parseReplayJson(bytes,LIMIT);}
 async function main(){
   const [command,configFile,requestFile,approvalFile,...extra]=process.argv.slice(2);
-  if(command==='--help'||!command){console.log('industrial-operations qualify|admit|prepare-release|release CONFIG REQUEST [APPROVAL]\nindustrial-operations refresh|serve CONFIG');return;}
+  if(command==='--help'||!command){console.log('industrial-operations qualify|admit|prepare-release|release CONFIG REQUEST [APPROVAL]\nindustrial-operations refresh|refresh-status|serve CONFIG\nindustrial-operations prepare-refresh-quarantine CONFIG ATTEMPT_ID\nindustrial-operations quarantine-refresh CONFIG REQUEST APPROVAL');return;}
   if(!configFile||extra.length)throw new Error('INVALID_ARGUMENTS');const c=configSchema.parse(json(configFile));
   const keys=c.authorityKeys as AuthorityKey[],at=new Date().toISOString();let result:unknown;
   if(command==='refresh'){if(requestFile||approvalFile)throw new Error('INVALID_ARGUMENTS');
-    result=await refreshOnce({root:c.root,schedule:c.schedule,operation:REFRESH_OPERATION,now:()=>new Date().toISOString(),execute:fixedRefreshPipeline(c)});
+    result=await refreshOnce({root:c.root,schedule:c.schedule,operation:REFRESH_OPERATION,now:()=>new Date().toISOString(),authorityKeys:keys,execute:fixedRefreshPipeline(c)});
+  }else if(command==='refresh-status'){if(requestFile||approvalFile)throw new Error('INVALID_ARGUMENTS');
+    result=inspectRefresh({root:c.root,schedule:c.schedule,operation:REFRESH_OPERATION,authorityKeys:keys,at});
+    if(['UNAVAILABLE','LOCKED','BLOCKED'].includes((result as {status:string}).status))process.exitCode=2;
+  }else if(command==='prepare-refresh-quarantine'){if(!requestFile||approvalFile)throw new Error('INVALID_ARGUMENTS');
+    result=prepareRefreshQuarantine({root:c.root,schedule:c.schedule,operation:REFRESH_OPERATION,authorityKeys:keys,at,attemptId:requestFile});
+  }else if(command==='quarantine-refresh'){if(!requestFile||!approvalFile)throw new Error('INVALID_ARGUMENTS');
+    result=quarantineRefresh({root:c.root,schedule:c.schedule,operation:REFRESH_OPERATION,authorityKeys:keys,at,request:json(requestFile),approval:json(approvalFile)});
   }else if(command==='serve'){if(requestFile||approvalFile)throw new Error('INVALID_ARGUMENTS');serverConfigSchema.parse(json(c.distributionConfig));
     const service=createDistributionServer({configFile:c.distributionConfig,staticRoot:c.staticRoot,objectRoot:c.objectRoot,auditRoot:c.auditRoot});
     service.listen(c.port);await once(service.server,'listening');

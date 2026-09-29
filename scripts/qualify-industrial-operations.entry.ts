@@ -1,21 +1,35 @@
 /** Real-source qualification: no production authority, signing key or admission is invented. */
-import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
+import {mkdirSync,readFileSync,writeFileSync,readdirSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {refreshOnce} from '../src/industrial-operations/refresh';
+import {inspectRefresh} from '../src/industrial-operations/refresh-state';
+import {commitment} from '../src/industrial-operations/authority';
+import {byteDigest} from '../src/data-os/evidence-capture';
 import {fixedRefreshPipeline,REFRESH_OPERATION} from '../src/industrial-operations/pipeline';
 import {retainIndustrialCapture,type IndustrialReview} from '../src/acquisition/industrial-review';
 import {qualifyAdmission,type AdmissionRequest} from '../src/industrial-operations/admission';
 const [mode,gscRoot,python,workPath]=process.argv.slice(2);
 if(!['--live','--retained'].includes(mode)||!gscRoot||!python||!workPath)throw new Error('INVALID_QUALIFICATION_ARGUMENTS');
 const work=resolve(workPath);mkdirSync(work,{recursive:true});const intakeRoot=join(work,'intake');
-let review:IndustrialReview,captureRoot:string,refresh:unknown=null,secondInvocation:unknown=null;
+let review:IndustrialReview,captureRoot:string,refresh:unknown=null,secondInvocation:unknown=null,refreshInspection:unknown=null;
 if(mode==='--live'){
  const now=new Date(),schedule={schema:'payload.capture-schedule.v1',scheduleId:'industrial-qualification',sourceId:'industrial-noaa-usgs',minimumIntervalHours:1,notBefore:now.toISOString(),notAfter:new Date(now.getTime()+3*3600000).toISOString(),maxRuns:2,enabled:true};
  const options={root:join(work,'refresh'),schedule,operation:REFRESH_OPERATION,now:()=>new Date().toISOString(),execute:fixedRefreshPipeline({gscRoot,pythonExecutable:python,intakeRoot})};
  writeFileSync(join(work,'declared-schedule.json'),JSON.stringify(schedule,null,2),{flag:'wx'});
  const run=await refreshOnce(options);if(run.receipt?.state!=='CAPTURED')throw new Error('REAL_REFRESH_FAILED');
  refresh=run;const second=await refreshOnce(options);if(second.plan.decision!=='NOT_DUE')throw new Error('REFRESH_REPLAY_DID_NOT_SUPPRESS_COLLECTION');secondInvocation=second;
+ // Qualify the actual status command against the retained live journal; it must not alter any file.
+ const journalSnapshot=()=>{const entries:Record<string,string>={};
+  const walk=(dir:string,prefix='')=>{for(const entry of readdirSync(dir,{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name))){
+   const name=prefix+entry.name;if(entry.isSymbolicLink())throw new Error('UNSAFE_QUALIFICATION_JOURNAL');
+   if(entry.isDirectory())walk(join(dir,entry.name),name+'/');else entries[name]=byteDigest(readFileSync(join(dir,entry.name)));
+  }};walk(options.root);return commitment(entries);};
+ const before=journalSnapshot(),status=inspectRefresh({root:options.root,schedule,operation:REFRESH_OPERATION,at:new Date().toISOString()});
+ const after=journalSnapshot();
+ if(status.status!=='INSPECTED'||status.plan?.decision!=='NOT_DUE'||status.plan.runsSpent!==1||before!==after)throw new Error('REFRESH_STATUS_QUALIFICATION_FAILED');
+ refreshInspection={status,journalUnchanged:before===after,beforeDigest:before,afterDigest:after};
+ writeFileSync(join(work,'refresh-status.json'),JSON.stringify(refreshInspection,null,2),{flag:'wx'});
  const path=join(options.root,schedule.scheduleId,'attempts',run.attemptId!);captureRoot=join(path,'capture');
  review=JSON.parse(readFileSync(join(path,'esm-review.json'),'utf8'));
  mkdirSync(join(work,'view'));for(const file of (await import('node:fs')).readdirSync(join(path,'view')))writeFileSync(join(work,'view',file),readFileSync(join(path,'view',file)),{flag:'wx'});
@@ -36,5 +50,5 @@ if(qualification.ready)throw new Error('UNAUTHORIZED_REAL_ADMISSION');
 const failed=qualification.members[0].ruling.failed.map(x=>x.check);
 for(const expected of ['SOURCE_CLOCK_COHERENT','SUBJECT_IDENTIFIED','RIGHTS_DECIDED','AUTHORITY_IS_NOT_THE_PROCESS'] as const)if(!failed.includes(expected))throw new Error('MISSING_REFUSAL_BOUNDARY');
 writeFileSync(join(work,'real-admission-request.json'),JSON.stringify(request,null,2),{flag:'wx'});
-writeFileSync(join(work,'qualification-report.json'),JSON.stringify({mode:mode==='--live'?'NEW_LIVE_CAPTURE':'RETAINED_REINSPECTION',refresh,secondInvocation,qualification,canonicalWritePerformed:false,releasePublished:false},null,2),{flag:'wx'});
+writeFileSync(join(work,'qualification-report.json'),JSON.stringify({mode:mode==='--live'?'NEW_LIVE_CAPTURE':'RETAINED_REINSPECTION',refresh,secondInvocation,refreshInspection,qualification,canonicalWritePerformed:false,releasePublished:false},null,2),{flag:'wx'});
 console.log(JSON.stringify({mode,failedChecks:failed,realAdmission:false,releasePublished:false}));

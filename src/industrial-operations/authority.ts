@@ -7,8 +7,9 @@ export const hash = z.string().regex(/^sha256:[a-f0-9]{64}$/);
 export const id = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9:._/-]{0,159}$/);
 export const instant = z.string().refine(s => Number.isFinite(Date.parse(s)) && new Date(s).toISOString() === s);
 export const text = z.string().min(1).max(512).refine(s => !!s.trim() && !/[\u0000-\u001f\u007f]/.test(s));
+export const approvalAction = z.enum(['ADMIT','RELEASE','QUARANTINE_REFRESH']);
 export const approvalSchema = z.object({schema:z.literal('payload.industrial-approval.v1'),decisionId:id,
-  action:z.enum(['ADMIT','RELEASE']),authorityId:id,keyId:id,targetDigest:hash,
+  action:approvalAction,authorityId:id,keyId:id,targetDigest:hash,
   issuedAt:instant,notAfter:instant,signature:z.string().regex(/^[A-Za-z0-9_-]{86}$/)}).strict();
 export type Approval = z.infer<typeof approvalSchema>;
 export interface AuthorityKey { keyId:string; authorityId:string; publicKeyPem:string; actions:readonly Approval['action'][];

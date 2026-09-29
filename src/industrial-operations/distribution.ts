@@ -8,11 +8,11 @@ import { readImmutableFile, publishImmutableFile } from '../data-os/local-files'
 import { encodeLocalRecord } from '../data-os/local-record';
 import { byteDigest } from '../data-os/evidence-capture';
 import { reinspectRelease } from './release';
-import { check, hash, id, instant, LIMIT, type AuthorityKey } from './authority';
+import { approvalAction, check, hash, id, instant, LIMIT, type AuthorityKey } from './authority';
 const tokenPattern=/^esm_[A-Za-z0-9_-]{43}$/;
 export const credentialSchema=z.object({credentialId:id,recipientId:id,tokenDigest:hash,notBefore:instant,notAfter:instant,
   revoked:z.boolean(),artifacts:z.array(hash).min(1).max(128)}).strict();
-const keySchema=z.object({keyId:id,authorityId:id,publicKeyPem:z.string().min(1).max(4096),actions:z.array(z.enum(['ADMIT','RELEASE'])).min(1).max(2),notBefore:instant,notAfter:instant,revoked:z.boolean()}).strict();
+const keySchema=z.object({keyId:id,authorityId:id,publicKeyPem:z.string().min(1).max(4096),actions:z.array(approvalAction).min(1).max(3),notBefore:instant,notAfter:instant,revoked:z.boolean()}).strict();
 export const serverConfigSchema=z.object({schema:z.literal('payload.industrial-distribution.v1'),
   credentials:z.array(credentialSchema).min(1).max(64),authorityKeys:z.array(keySchema).max(32),
   resources:z.array(z.object({digest:hash,kind:z.enum(['REVIEW','RELEASE']),file:z.string().min(1).max(2048),requestFile:z.string().max(2048).nullable(),revoked:z.boolean()}).strict()).max(128),

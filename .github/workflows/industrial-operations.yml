@@ -1,7 +1,7 @@
 name: Industrial operations qualification
 on:
   push:
-    branches: [feat/industrial-operations-v1-20260929]
+    branches: [feat/industrial-operations-v1-20260929, feat/industrial-refresh-recovery-v1-20260929]
   workflow_dispatch:
 permissions:
   contents: read
@@ -80,7 +80,7 @@ jobs:
           done
           node --version > qualification/pins/node.txt
           test ! -x raster/bin/python || raster/bin/python -m pip freeze > qualification/pins/raster.txt
-          git -C esm archive --format=tar.gz HEAD src/industrial-operations scripts/industrial-operations.entry.ts scripts/qualify-industrial-operations.entry.ts scripts/test-industrial-distribution-browser.mjs docs/INDUSTRIAL_OPERATIONS.md deploy/industrial-operations industrial-operations.vitest.mts industrial-operations.tsconfig.json .github/workflows/industrial-operations.yml > qualification/operations-private-source.tar.gz
+          git -C esm archive --format=tar.gz HEAD src/industrial-operations scripts/industrial-operations.entry.ts scripts/qualify-industrial-operations.entry.ts scripts/test-industrial-distribution-browser.mjs docs/INDUSTRIAL_OPERATIONS.md docs/REFRESH_RECOVERY.md deploy/industrial-operations industrial-operations.vitest.mts industrial-operations.tsconfig.json .github/workflows/industrial-operations.yml > qualification/operations-private-source.tar.gz
           test ! -d gsv/dist-industrial || tar -czf qualification/industrial-viewer.tar.gz -C gsv dist-industrial
           find qualification -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > qualification/SHA256SUMS
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

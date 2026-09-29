@@ -1,5 +1,7 @@
 # Industrial operations: explicit decisions, exact delivery and retained refresh
 
+Refresh journal inspection and separately signed quarantine are described in [Refresh recovery](REFRESH_RECOVERY.md). Existing admission, release and source-review boundaries below remain unchanged.
+
 This private ESM increment extends the prior NOAA station 9414290 / USGS 3DEP
 internal-review rail. It reuses `LocalEvidenceIntake`, content-addressed objects,
 immutable local files, the existing admission gate, native SQL admission writer,
