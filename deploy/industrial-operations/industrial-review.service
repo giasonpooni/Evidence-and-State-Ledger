@@ -1,0 +1,41 @@
+[Unit]
+Description=Authenticated industrial evidence review instrument
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=notation
+Group=notation
+UMask=0077
+WorkingDirectory=/opt/notation/esm
+Environment=NODE_ENV=production
+Environment=NEXT_TELEMETRY_DISABLED=1
+ExecStartPre=/usr/bin/node /opt/notation/esm/.stamp/industrial-operations.mjs readiness /etc/notation/industrial-operations.json
+ExecStart=/usr/bin/node /opt/notation/esm/.stamp/industrial-operations.mjs serve /etc/notation/industrial-operations.json
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=30
+TimeoutStopSec=20
+KillSignal=SIGTERM
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallArchitectures=native
+LimitNOFILE=4096
+TasksMax=128
+MemoryMax=1G
+ReadWritePaths=/var/lib/notation/industrial-operations/audit
+
+[Install]
+WantedBy=multi-user.target
