@@ -1,0 +1,81 @@
+name: Synthetic industrial viewer qualification
+on:
+  push:
+    branches: [feat/industrial-viewer-recheck-v1-20260929]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: industrial-viewer-recheck-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          path: esm
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: giasonpooni/Geospatial-State-Visualization
+          ref: 86de8e9861720aceed4245589fee8a75856af8ac
+          path: gsv
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: esm/package-lock.json
+      - name: Locked dependencies
+        run: |
+          npm ci --prefix esm
+          npm ci --prefix gsv
+      - name: Preserved ESM checks and actual-server bundling
+        working-directory: esm
+        run: |
+          mkdir -p ../qualification/public .stamp
+          npx tsc -p industrial-operations.tsconfig.json
+          npx eslint src/industrial-operations src/acquisition/industrial-review.ts scripts/qualify-industrial-viewer-fixture.entry.ts
+          npx vitest run --config industrial-operations.vitest.mts --reporter=default --reporter=json --outputFile=../qualification/public/esm-tests.json
+          npx vitest run src/architecture.test.ts --reporter=default --reporter=json --outputFile=../qualification/public/architecture-tests.json
+          npx esbuild scripts/qualify-industrial-viewer-fixture.entry.ts --bundle --platform=node --format=esm --packages=external --alias:@=./src --outfile=.stamp/qualify-industrial-viewer-fixture.mjs
+          npx esbuild src/industrial-operations/distribution.ts --bundle --platform=node --format=esm --packages=external --alias:@=./src --outfile=.stamp/industrial-distribution.mjs
+      - name: Synthetic contract fixture; no external acquisition
+        run: |
+          node esm/.stamp/qualify-industrial-viewer-fixture.mjs qualification/fixture
+          mkdir -p gsv/.industrial-data
+          cp qualification/fixture/view/*.json gsv/.industrial-data/
+          cp qualification/fixture/fixture-mode.json qualification/public/
+      - name: Existing viewer checks and industrial build
+        working-directory: gsv
+        run: npm run build:industrial
+      - name: Actual authenticated server and recheck UI in Chromium
+        working-directory: esm
+        run: |
+          npx playwright install --with-deps chromium
+          node scripts/test-industrial-distribution-browser.mjs ../gsv/dist-industrial ../qualification/fixture/view ../qualification/public/browser ../qualification/fixture/retained-selection.json --synthetic
+      - name: Retain only explicitly public-safe qualification outputs
+        if: always()
+        run: |
+          mkdir -p qualification/public/pins
+          for repo in esm gsv; do
+            git -C "$repo" rev-parse HEAD > "qualification/public/pins/$repo-commit.txt"
+            git -C "$repo" rev-parse HEAD^{tree} > "qualification/public/pins/$repo-tree.txt"
+          done
+          node --version > qualification/public/pins/node.txt
+          # Never copy the fixture's private-style stores, selection/access config,
+          # internal live captures or implementation archives into this output.
+          printf '%s\n' 'SYNTHETIC_CONTRACT_FIXTURE; no source acquisition or real admission; screenshots carry a test-only annotation.' > qualification/public/SCOPE.txt
+          cd qualification/public
+          find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: synthetic-viewer-qualification-${{ github.sha }}
+          path: qualification/public/
+          retention-days: 7
+          if-no-files-found: error

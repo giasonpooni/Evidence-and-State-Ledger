@@ -10,7 +10,8 @@
   "include": [
     "src/industrial-operations/**/*.ts",
     "scripts/industrial-operations.entry.ts",
-    "scripts/qualify-industrial-operations.entry.ts"
+    "scripts/qualify-industrial-operations.entry.ts",
+    "scripts/qualify-industrial-viewer-fixture.entry.ts"
   ],
   "exclude": [
     "node_modules",
