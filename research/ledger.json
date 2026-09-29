@@ -1,0 +1,444 @@
+{
+  "schema": "notations.research-ledger.v1",
+  "programme": {
+    "name": "Computational Instrumentation and Scientific Control Systems",
+    "question": "How can human intent, mathematical representations, scientific computation, AI reasoning, and physical-system state be composed through minimal, verifiable representations?",
+    "method": "Build useful instruments and applications; record what each build tests; retain observations/counterexamples; promote only manually from hypothesis to pattern/principle/formal proposition; aggressively search for counterexamples."
+  },
+  "records": [
+    {
+      "id": "H-001",
+      "kind": "HYPOTHESIS",
+      "title": "Identity separation survives scientific transformations",
+      "statement": "Scientific transformations that will be audited downstream require source identity, transformation identity, and output/result identity to remain separately addressable.",
+      "status": "SUPPORTED",
+      "domains": [
+        "time-reference",
+        "measurement-calibration"
+      ],
+      "testCorpus": [
+        "time-reference",
+        "measurement-calibration",
+        "geometry",
+        "state-estimation"
+      ],
+      "repositoryRefs": [],
+      "evidenceRefs": [],
+      "notes": "Supported by current ClockSync and Calibration software experiments; not yet tested across the whole declared corpus."
+    },
+    {
+      "id": "E-001",
+      "kind": "EXPERIMENT",
+      "title": "ClockSync portable instrument qualification",
+      "statement": "Test whether a source timestamp can survive a declared temporal-frame transformation while preserving source observation identity, model identity, uncertainty and result identity.",
+      "status": "SUPPORTED",
+      "domains": [
+        "time-reference"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-ClockSync",
+          "revision": "edb4e5b99ec0ce384437e1c0f1c820ef04598e33",
+          "workflowRun": "36629295583",
+          "pullRequest": "3"
+        }
+      ],
+      "evidenceRefs": [
+        "github-actions:Notations-ClockSync:36629295583"
+      ],
+      "notes": "Software qualification only; not physical metrological validation."
+    },
+    {
+      "id": "O-001",
+      "kind": "OBSERVATION",
+      "title": "ClockSync retained source and derived coordinate separately",
+      "statement": "The qualified ClockSync specimen retains the source observation/model while producing a separately identified reference-clock result with propagated uncertainty.",
+      "status": "SUPPORTED",
+      "domains": [
+        "time-reference"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-ClockSync",
+          "revision": "edb4e5b99ec0ce384437e1c0f1c820ef04598e33",
+          "workflowRun": "36629295583",
+          "pullRequest": "3"
+        }
+      ],
+      "evidenceRefs": [
+        "github-actions:Notations-ClockSync:36629295583"
+      ],
+      "notes": "Observation about software behavior."
+    },
+    {
+      "id": "E-002",
+      "kind": "EXPERIMENT",
+      "title": "Calibration portable instrument qualification",
+      "statement": "Test whether raw, indicated and calibrated measurement representations remain distinguishable while the declared affine transform propagates full joint first-order uncertainty.",
+      "status": "SUPPORTED",
+      "domains": [
+        "measurement-calibration"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Calibration-Runtime",
+          "revision": "af90d23b3be449770f7da6a42b5ffdb48853deec",
+          "workflowRun": "36636876035",
+          "pullRequest": "2"
+        }
+      ],
+      "evidenceRefs": [
+        "github-actions:Notations-Calibration-Runtime:36636876035"
+      ],
+      "notes": "Software qualification only; not a physical calibration certificate."
+    },
+    {
+      "id": "O-002",
+      "kind": "OBSERVATION",
+      "title": "Calibration retained raw, indicated and corrected values",
+      "statement": "The qualified Calibration specimen preserves raw, indicated and corrected measurement values as distinct fields while retaining the affine operation and uncertainty budget.",
+      "status": "SUPPORTED",
+      "domains": [
+        "measurement-calibration"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Calibration-Runtime",
+          "revision": "af90d23b3be449770f7da6a42b5ffdb48853deec",
+          "workflowRun": "36636876035",
+          "pullRequest": "2"
+        }
+      ],
+      "evidenceRefs": [
+        "github-actions:Notations-Calibration-Runtime:36636876035"
+      ],
+      "notes": "Observation about software behavior."
+    },
+    {
+      "id": "P-001",
+      "kind": "PRINCIPLE",
+      "title": "Transformations should preserve the identities required to audit meaning",
+      "statement": "When downstream reasoning depends on provenance or transformation semantics, the representation should preserve separately addressable source, transformation and result identities rather than collapse them into one value.",
+      "status": "CANDIDATE",
+      "domains": [
+        "time-reference",
+        "measurement-calibration"
+      ],
+      "testCorpus": [
+        "time-reference",
+        "measurement-calibration",
+        "geometry",
+        "state-estimation"
+      ],
+      "repositoryRefs": [],
+      "evidenceRefs": [],
+      "notes": "Provisional generalization from H-001; deliberately narrower than claiming every software transformation always needs the same metadata."
+    },
+    {
+      "id": "H-002",
+      "kind": "HYPOTHESIS",
+      "title": "Human interpretation can seed computation without becoming evidence",
+      "statement": "Human annotations can be made computationally addressable and used to seed an investigation while remaining epistemically distinct from evidence, canonical state, verification and execution authority.",
+      "status": "SUPPORTED",
+      "domains": [
+        "human-computation"
+      ],
+      "testCorpus": [
+        "human-computation",
+        "manufacturing",
+        "creative-production"
+      ],
+      "repositoryRefs": [],
+      "evidenceRefs": [],
+      "notes": "Current evidence is the typed annotation plus annotation→NISE→NET loop."
+    },
+    {
+      "id": "E-003",
+      "kind": "EXPERIMENT",
+      "title": "Annotation to NISE to NET composition",
+      "statement": "Test whether a human annotation can become typed investigation intent, construct a NISE schematic, and compile to a NET experiment contract while truth/execution authority remain false.",
+      "status": "SUPPORTED",
+      "domains": [
+        "human-computation"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Systems-Terminal",
+          "revision": "8fd81a9f2345ff394da5a68410646733ed880a6c",
+          "workflowRun": "36637277716",
+          "pullRequest": "86"
+        }
+      ],
+      "evidenceRefs": [
+        "github-actions:Notations-Systems-Terminal:36637277716"
+      ],
+      "notes": "No provider executed during this qualification."
+    },
+    {
+      "id": "O-003",
+      "kind": "OBSERVATION",
+      "title": "Annotation remained non-evidence across the full planning loop",
+      "statement": "The qualified loop carried annotation identity, evidence/model refs and requested semantic operations through NISE/NET planning while retaining physical_truth_established=false and execution_authority=false.",
+      "status": "SUPPORTED",
+      "domains": [
+        "human-computation"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Systems-Terminal",
+          "revision": "8fd81a9f2345ff394da5a68410646733ed880a6c",
+          "workflowRun": "36637277716",
+          "pullRequest": "86"
+        }
+      ],
+      "evidenceRefs": [
+        "github-actions:Notations-Systems-Terminal:36637277716"
+      ],
+      "notes": "Supports H-002."
+    },
+    {
+      "id": "H-003",
+      "kind": "HYPOTHESIS",
+      "title": "Query-conditioned graph reduction can retain explicit unresolved structure",
+      "statement": "A bounded query-conditioned structural reduction can expose a smaller relevant graph while retaining unresolved capabilities and blocked frontier structure instead of fabricating completeness.",
+      "status": "SUPPORTED",
+      "domains": [
+        "graph-relevance"
+      ],
+      "testCorpus": [
+        "graph-relevance",
+        "physical-system",
+        "creative-production"
+      ],
+      "repositoryRefs": [],
+      "evidenceRefs": [],
+      "notes": "Current evidence is NISE V1 synthetic qualification; domain-general sufficiency remains untested."
+    },
+    {
+      "id": "E-004",
+      "kind": "EXPERIMENT",
+      "title": "NISE bounded schematic compiler V1",
+      "statement": "Test deterministic explicit focus/capability graph expansion with hop/node budgets and hypothesis policy.",
+      "status": "SUPPORTED",
+      "domains": [
+        "graph-relevance"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Inference-Schematics-Engine",
+          "revision": "42d1239d1be7cd515c5a57cbc4b98a2d31722051",
+          "workflowRun": "36632313635",
+          "pullRequest": "1"
+        }
+      ],
+      "evidenceRefs": [
+        "github-actions:Notations-Inference-Schematics-Engine:36632313635"
+      ],
+      "notes": "Question text is retained but does not secretly select nodes in V1."
+    },
+    {
+      "id": "O-004",
+      "kind": "OBSERVATION",
+      "title": "NISE retained unresolved capability and blocked hypothesis frontier",
+      "statement": "The qualified NISE fixture retained unavailable requested operations and hypothesis-policy frontier entries rather than silently inventing or discarding them.",
+      "status": "SUPPORTED",
+      "domains": [
+        "graph-relevance"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Inference-Schematics-Engine",
+          "revision": "42d1239d1be7cd515c5a57cbc4b98a2d31722051",
+          "workflowRun": "36632313635",
+          "pullRequest": "1"
+        }
+      ],
+      "evidenceRefs": [
+        "github-actions:Notations-Inference-Schematics-Engine:36632313635"
+      ],
+      "notes": "Supports H-003 but does not demonstrate same-answer fidelity on a real domain."
+    },
+    {
+      "id": "H-004",
+      "kind": "HYPOTHESIS",
+      "title": "Every transformation requires covariance",
+      "statement": "Every representation transformation requires a covariance object.",
+      "status": "REJECTED",
+      "domains": [
+        "measurement",
+        "human-computation"
+      ],
+      "testCorpus": [
+        "measurement",
+        "human-computation"
+      ],
+      "repositoryRefs": [],
+      "evidenceRefs": [],
+      "notes": "Intentionally retained as an over-generalization that fails outside numerical uncertainty-bearing transformations."
+    },
+    {
+      "id": "CE-001",
+      "kind": "COUNTEREXAMPLE",
+      "title": "Human annotation transformations do not inherently require covariance",
+      "statement": "Creating/superseding a typed human annotation transforms interpretive state and identity while its semantics do not inherently include numerical covariance.",
+      "status": "SUPPORTED",
+      "domains": [
+        "human-computation"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Systems-Terminal",
+          "revision": "2e6a96d7f8857657a8f4d81c19b8566f5ee55c3d",
+          "workflowRun": "36635816092",
+          "pullRequest": "84"
+        }
+      ],
+      "evidenceRefs": [
+        "github-actions:Notations-Systems-Terminal:36635816092"
+      ],
+      "notes": "Counterexample motivates a narrower uncertainty-preservation principle."
+    },
+    {
+      "id": "P-002",
+      "kind": "PRINCIPLE",
+      "title": "Uncertainty semantics must be preserved when uncertainty is part of the source meaning",
+      "statement": "When uncertainty is part of the source semantics and relevant to downstream computation, a transformation should explicitly propagate, preserve, bound, or refuse that uncertainty rather than silently discard it.",
+      "status": "CANDIDATE",
+      "domains": [
+        "time-reference",
+        "measurement-calibration"
+      ],
+      "testCorpus": [
+        "time-reference",
+        "measurement-calibration",
+        "geometry",
+        "state-estimation"
+      ],
+      "repositoryRefs": [],
+      "evidenceRefs": [],
+      "notes": "Refinement prompted by the failure of H-004; not claimed universal."
+    }
+  ],
+  "relations": [
+    {
+      "relationId": "R-001",
+      "source": "E-001",
+      "target": "H-001",
+      "kind": "TESTS",
+      "notes": "ClockSync tests identity separation under time-frame transformation."
+    },
+    {
+      "relationId": "R-002",
+      "source": "E-002",
+      "target": "H-001",
+      "kind": "TESTS",
+      "notes": "Calibration tests identity separation under measurement transformation."
+    },
+    {
+      "relationId": "R-003",
+      "source": "O-001",
+      "target": "H-001",
+      "kind": "SUPPORTS",
+      "notes": "ClockSync observation supports the hypothesis."
+    },
+    {
+      "relationId": "R-004",
+      "source": "O-002",
+      "target": "H-001",
+      "kind": "SUPPORTS",
+      "notes": "Calibration observation supports the hypothesis."
+    },
+    {
+      "relationId": "R-005",
+      "source": "H-001",
+      "target": "P-001",
+      "kind": "MOTIVATES",
+      "notes": "Repeated identity separation motivates a candidate principle."
+    },
+    {
+      "relationId": "R-006",
+      "source": "E-001",
+      "target": "P-001",
+      "kind": "TESTS",
+      "notes": "Time-reference domain test."
+    },
+    {
+      "relationId": "R-007",
+      "source": "E-002",
+      "target": "P-001",
+      "kind": "TESTS",
+      "notes": "Measurement-calibration domain test."
+    },
+    {
+      "relationId": "R-008",
+      "source": "E-003",
+      "target": "H-002",
+      "kind": "TESTS",
+      "notes": "Full planning loop tests human interpretation boundary."
+    },
+    {
+      "relationId": "R-009",
+      "source": "O-003",
+      "target": "H-002",
+      "kind": "SUPPORTS",
+      "notes": "Qualified loop retained the boundary."
+    },
+    {
+      "relationId": "R-010",
+      "source": "E-004",
+      "target": "H-003",
+      "kind": "TESTS",
+      "notes": "NISE V1 tests bounded structural reduction."
+    },
+    {
+      "relationId": "R-011",
+      "source": "O-004",
+      "target": "H-003",
+      "kind": "SUPPORTS",
+      "notes": "Unresolved/frontier structure remained explicit."
+    },
+    {
+      "relationId": "R-012",
+      "source": "CE-001",
+      "target": "H-004",
+      "kind": "COUNTEREXAMPLE_TO",
+      "notes": "Broad covariance universal fails on annotation transformation."
+    },
+    {
+      "relationId": "R-013",
+      "source": "H-004",
+      "target": "P-002",
+      "kind": "REFINES",
+      "notes": "Rejected over-generalization motivates narrower uncertainty semantics."
+    },
+    {
+      "relationId": "R-014",
+      "source": "E-001",
+      "target": "P-002",
+      "kind": "TESTS",
+      "notes": "ClockSync explicitly propagates timing uncertainty."
+    },
+    {
+      "relationId": "R-015",
+      "source": "E-002",
+      "target": "P-002",
+      "kind": "TESTS",
+      "notes": "Calibration explicitly propagates joint uncertainty."
+    }
+  ],
+  "claims": {
+    "researchMetadataOnly": true,
+    "scientificTruthEstablished": false,
+    "peerReviewPerformed": false,
+    "automaticPromotionToAxiom": false
+  }
+}
