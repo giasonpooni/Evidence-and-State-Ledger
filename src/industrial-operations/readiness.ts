@@ -36,7 +36,7 @@ export function assessReviewReadiness(options:{distributionConfig:string;staticR
       const selected=retainedReviewRequestSchema.parse(parseReplayJson(readPath(resource.requestFile),LIMIT));
       const inspected=reinspectRefreshResult({root:selected.refreshRoot,intakeRoot:selected.intakeRoot,schedule:selected.schedule,
         attemptId:selected.attemptId,at:options.at,authorityKeys:config.authorityKeys as AuthorityKey[]});
-      const ok=inspected.status==='REINSPECTED'&&inspected.result.compiledDigest===active;
+      const ok=inspected.report.status==='REINSPECTED'&&inspected.report.result.compiledDigest===active;
       checks.push(item('retained-dependencies',ok?'PASS':'HOLD',ok?'RETAINED_DEPENDENCIES_REINSPECTED':'RETAINED_DEPENDENCIES_UNAVAILABLE'));
     }else checks.push(item('retained-dependencies','HOLD','RETAINED_SELECTION_UNAVAILABLE'));
   }catch{checks.push(item('configuration','HOLD','REVIEW_CONFIGURATION_UNAVAILABLE'));}
