@@ -80,7 +80,7 @@ The cookie is intentionally not `Secure` on this HTTP loopback-only deployment;
 this is **not Internet-facing TLS, SSO, tenant isolation or a production identity
 provider**. Do not remove the loopback/Host/Origin gates to publish it remotely.
 
-The unchanged GSV industrial viewer can use the protected same-origin
+The GSV industrial viewer uses the protected same-origin
 `/industrial-data/index.json` and digest-named review resource. That review stays
 `UNADMITTED_SOURCE_REVIEW`; authentication does not turn it into a release.
 Operator configuration grants access only to exact, already qualified review
@@ -196,7 +196,7 @@ not an automatic production-certification operation.
 The qualification script can execute a new live retained refresh or reinspect an
 already retained capture. It emits the real admission refusal and does not add
 missing publication time, canonical identity, rights or a human approval. The
-browser script exercises the actual authenticated listener and the unchanged GSV
+browser script exercises the actual authenticated listener and the existing GSV
 industrial build with real captured data and ephemeral access credentials. It
 checks unauthenticated denial, HttpOnly login, digest-bound read, mobile display
 and live revocation. No credential is retained in its report or screenshots.
@@ -210,3 +210,13 @@ conversion, aircraft clearance, bathymetry, navigation or flood model is added.
 Primary API references: Node.js `crypto.verify` / `crypto.timingSafeEqual`
 (https://nodejs.org/api/crypto.html), and systemd timer/service semantics
 (https://www.freedesktop.org/software/systemd/man/latest/systemd.timer.html).
+
+## Integration repair retained
+
+The initial operations workflow at ESM `6855dd2` completed tests, live retained
+refresh and real admission refusal, but browser qualification failed. GSV
+explicitly sent `credentials: omit`; login could not authenticate its data
+requests. GSV `f6e1c14b2da4c6d7bd1a4d5354d40d2e052645c6` changes only the bounded
+loopback review transport to `same-origin` and adds four loader regressions.
+The workflow pins that repair. No server authentication or GSV schema gate was
+relaxed, and the original homepage/synthetic scene remain unchanged.
