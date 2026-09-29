@@ -1,5 +1,5 @@
 /** Tests the actual authenticated server against the existing GSV industrial build. */
-import {mkdtempSync,readFileSync,writeFileSync,rmSync,mkdirSync,readdirSync,cpSync} from 'node:fs';
+import {chmodSync,mkdtempSync,readFileSync,writeFileSync,rmSync,mkdirSync,readdirSync,cpSync} from 'node:fs';
 import {resolve,join} from 'node:path';import {tmpdir} from 'node:os';import {randomBytes} from 'node:crypto';import {once} from 'node:events';import assert from 'node:assert/strict';
 import {chromium} from '@playwright/test';
 import {createDistributionServer,credentialForToken} from '../.stamp/industrial-distribution.mjs';
@@ -8,8 +8,8 @@ const site=resolve(siteArg),view=resolve(viewArg),output=resolve(outputArg);mkdi
 const index=JSON.parse(readFileSync(join(view,'index.json'),'utf8')),root=mkdtempSync(join(tmpdir(),'esm-auth-browser-'));
 const token='esm_'+randomBytes(32).toString('base64url'),at=new Date().toISOString(),end=new Date(Date.now()+600000).toISOString();
 const config={schema:'payload.industrial-distribution.v1',credentials:[credentialForToken(token,'operator:qualification',index.sha256,at,end)],authorityKeys:[],resources:[{digest:index.sha256,kind:selectionArg?'RETAINED_REVIEW':'REVIEW',file:join(view,index.file),requestFile:selectionArg?resolve(selectionArg):null,revoked:false}],activeReviewDigest:index.sha256};
-const configFile=join(root,'access.json');const save=()=>writeFileSync(configFile,JSON.stringify(config));save();
-const service=createDistributionServer({configFile,staticRoot:site,objectRoot:join(root,'objects'),auditRoot:root});service.listen();await once(service.server,'listening');
+const configFile=join(root,'access.json');const save=()=>{writeFileSync(configFile,JSON.stringify(config));if(process.platform!=='win32')chmodSync(configFile,0o600);};save();if(selectionArg&&process.platform!=='win32')chmodSync(resolve(selectionArg),0o600);
+const service=createDistributionServer({configFile,staticRoot:site,objectRoot:join(root,'objects'),auditRoot:root,maxObservationAgeMs:24*60*60*1000});service.listen();await once(service.server,'listening');
 const base=`http://127.0.0.1:${service.server.address().port}`;
 const browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),args:['--enable-unsafe-swiftshader','--use-angle=swiftshader']});
 const dataMode=dataModeArg==='--synthetic'?'SYNTHETIC_CONTRACT_FIXTURE':'RETAINED_SOURCE_CAPTURE';
@@ -97,6 +97,9 @@ try{
  assert.equal((await page.evaluate(()=>window.industrialReview.inspect())).readings,0);
  await page.screenshot({path:join(output,'revoked-mobile-ui.png')});
  scenarios.push('revocation denies the next request and hides prior viewer data on explicit recheck');
+ service.beginDrain();const drainingReady=await page.request.get(base+'/readyz');assert.equal(drainingReady.status(),503);assert.equal((await drainingReady.json()).checks[0].detailCode,'SERVICE_DRAINING');
+ const drainingHealth=await page.request.get(base+'/healthz');assert.equal((await drainingHealth.json()).status,'DRAINING');assert.equal((await page.request.get(base+'/industrial-data/index.json')).status(),503);
+ scenarios.push('graceful drain flips readiness before refusing new data while liveness remains observable');
  assert.deepEqual(errors,[]);assert.deepEqual(outbound,[]);assert.equal(expectedHttpErrors.length,selectionArg?2:1);
  writeFileSync(join(output,'browser-results.json'),JSON.stringify({dataMode,scenarios,inspection,errors,outbound,expectedHttpErrors,expectedUnauthenticatedStatus:401,expectedRevokedStatus:401,auditEvents:readdirSync(join(root,'chain')).length},null,2));
 }catch(error){writeFileSync(join(output,'browser-results.json'),JSON.stringify({dataMode,scenarios,errors,outbound,expectedHttpErrors,failure:String(error)},null,2));throw error;}
