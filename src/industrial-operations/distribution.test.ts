@@ -12,8 +12,8 @@ async function fixture(){
  const digest=byteDigest(bytes),file=join(root,'review.json');writeFileSync(file,bytes);const token='esm_'+randomBytes(32).toString('base64url');
  const config:ServerConfig={schema:'payload.industrial-distribution.v1',credentials:[credentialForToken(token,'operator:test',digest,at,end)],authorityKeys:[],resources:[{digest,kind:'REVIEW',file,requestFile:null,revoked:false}],activeReviewDigest:digest};
  const configFile=join(root,'access.json');const save=()=>writeFileSync(configFile,JSON.stringify(config));save();let now=at;
- const app=createDistributionServer({configFile,staticRoot:site,objectRoot:join(root,'objects'),auditRoot:root,now:()=>now});app.listen();await once(app.server,'listening');const address=app.server.address();if(!address||typeof address==='string')throw new Error('listen');
- const base=`http://127.0.0.1:${address.port}`,path='/v1/artifacts/'+digest.slice(7);return {root,config,save,file,token,bytes,path,base,request:(p=path,init:RequestInit={})=>fetch(base+p,init),auth:{Authorization:'Bearer '+token},clock:(value:string)=>{now=value;},close:async()=>{app.server.closeAllConnections();await new Promise<void>(r=>app.server.close(()=>r()));}};
+ const app=createDistributionServer({configFile,staticRoot:site,objectRoot:join(root,'objects'),auditRoot:root,now:()=>now,readiness:()=>({status:'READY',assessedAt:now,reasonCodes:[]})});app.listen();await once(app.server,'listening');const address=app.server.address();if(!address||typeof address==='string')throw new Error('listen');
+ const base=`http://127.0.0.1:${address.port}`,path='/v1/artifacts/'+digest.slice(7);return {root,config,save,file,token,bytes,path,base,app,request:(p=path,init:RequestInit={})=>fetch(base+p,init),auth:{Authorization:'Bearer '+token},clock:(value:string)=>{now=value;},close:async()=>{app.server.closeAllConnections();await new Promise<void>(r=>app.server.close(()=>r()));}};
 }
 it('real HTTP denies unauthenticated data and serves an authenticated exact artifact',async()=>{const f=await fixture();try{
  expect((await f.request()).status).toBe(401);const r=await f.request(f.path,{headers:f.auth});expect(r.status).toBe(200);expect(Buffer.from(await r.arrayBuffer())).toEqual(f.bytes);expect(r.headers.get('cache-control')).toBe('no-store');
@@ -35,3 +35,10 @@ it('foreign origin and malformed/ambiguous credentials fail',async()=>{const f=a
  expect((await f.request(f.path,{method:'POST',headers:f.auth})).status).toBe(405);
 }finally{await f.close();}});
 it('a review cannot acquire released status by choosing the release route',async()=>{const f=await fixture();try{f.config.resources[0].kind='RELEASE';f.save();expect((await f.request(f.path,{headers:f.auth})).status).toBe(503);}finally{await f.close();}});
+
+it('exposes minimal loopback liveness/readiness and drains before shutdown',async()=>{const f=await fixture();try{
+ const health=await f.request('/healthz');expect(health.status).toBe(200);expect(await health.json()).toEqual({schema:'payload.industrial-health.v1',status:'ALIVE'});
+ const ready=await f.request('/readyz');expect(ready.status).toBe(200);expect(await ready.json()).toMatchObject({schema:'payload.industrial-readiness-probe.v1',status:'READY',reasonCodes:[]});
+ f.app.beginDrain();const draining=await f.request('/readyz');expect(draining.status).toBe(503);expect(await draining.json()).toMatchObject({status:'NOT_READY',reasonCodes:['DRAINING']});
+ const after=await f.request('/healthz');expect(await after.json()).toMatchObject({status:'DRAINING'});
+}finally{await f.close();}});
