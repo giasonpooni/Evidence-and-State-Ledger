@@ -1,10 +1,26 @@
-# State Ledger
+# Notations State Ledger
 
 **Keep evidence, versioned state and release decisions connected without confusing one for another.**
 
-[Technical reference](TECHNICAL_REFERENCE.md) · [Component role](docs/STACK_ROLE.md) ·
-[Company mandate](docs/COMPANY_MANDATE.md) ·
-[Notations Engineering Terminal](https://github.com/giasonpooni/Notations-Engineering-Terminal)
+[Notation Systems](#notation-systems) · [Technical reference](TECHNICAL_REFERENCE.md) ·
+[Component role](docs/STACK_ROLE.md) · [Company mandate](docs/COMPANY_MANDATE.md) ·
+[Notations Systems Terminal](https://github.com/giasonpooni/Notations-Systems-Terminal)
+
+## Notation Systems
+
+**Notation Systems develops evidence-backed industrial intelligence, computational instrumentation and tooling for physical systems.** Its purpose is to connect domain expertise, observations and declared models to inspectable computation, justified decisions and bounded production work. The service direction remains **verify → refresh → reconstruct** for an agreed scope.
+
+| Identity | Responsibility |
+| --- | --- |
+| **PAYLOAD** | Organizations, facilities, materials, shipments, custody and operational networks; Caravan retains its movement/logistics interfaces. |
+| **LANDSHARK** | Land, parcels, sites, ownership/use, access, development and spatial constraints. |
+| **TRADEWIND** | Contracts, prices, commitments, exposure and physical-economic analysis. |
+| **PayloadOS** | Governed industrial evidence/state and service substrate. |
+| **Dossier Services** | Scoped service delivery and compilation of permitted customer-facing outputs. |
+| **NET** | Shared investigation/workflow control plane; not a second canonical industrial ledger. |
+| **Cartesian Graphics** | Games, graphics, physics and simulation studio/label under Notation Systems. 1792 is primary; Garibaldi is secondary; Geronimo remains on hold. |
+
+Manufacturing, robotics, materials/chemistry, GIS/remote sensing, DSP, scientific computing and analytics are engineering workload families, not additional public product rooms or claims of deployed adapters. Specialist repositories retain their implementations, scientific contracts and licences. Organizational parentage does not transfer state authority or assert a separately incorporated subsidiary.
 
 ## NET micro-tool
 
@@ -12,7 +28,7 @@
 | --- | --- |
 | User-facing name | **State Ledger** |
 | Proposed NET namespace | `state.ledger` |
-| Implementation repository | `Evidence-and-State-Management` |
+| Current repository | `Notations-State-Ledger` |
 | Existing provider identity | Evidence and State Management / ESM |
 | Purpose | Retain evidence, inspect time-qualified state and manage explicit admission, correction, recall and release |
 
@@ -41,13 +57,21 @@ The existing corpus and desk demonstrations retain their fixture and operating
 limits. This naming change does not establish live customer feeds, independent
 verification, a licensed customer delivery or a completed frontend integration.
 
+## Expertise amplification, not automatic truth
+
+The intended cross-domain workflow is **expert input → retained capture → reviewed domain specification → typed work → candidate artifacts → observations and verification → separately authorized integration/release**. Raw statements, observations, attributed claims, heuristics, interpretations and conflicts must remain distinguishable. A reviewed specification is not automatically admitted industrial evidence; an accepted game interpretation is not an industrial fact.
+
+NET owns sessions, composition and retained execution history. This ledger retains the governed evidence/state responsibility; capture tooling must not create a parallel canonical store. Games retain their live state, clocks, creative direction and release decisions. Evidence, specification, operation, execution, result, verification, admission and release identities remain separate.
+
+General expertise extraction, dependency-aware invalidation/rebuilds and secured agent workers are development targets, not features installed by this README. Released records remain immutable and explicitly superseded, not silently rewritten after an expert correction. Logical domain containers and MCP interfaces do not themselves establish OS isolation or grant access. Evaluate accepted useful work against total human effort, cost, rework and domain-specific quality; 1792 is the initial reference workload, not proof of industrial transfer.
+
 ## Where it fits
 
 [Data Intake](https://github.com/giasonpooni/Provenance-Preserving-Data-Acquisition)
 acquires source material. NET owns investigation/session state and operation
 dispatch; specialist providers own their numerical implementations. State Ledger
 retains and governs the information those activities reference.
-[Frame Mapper](https://github.com/giasonpooni/Geospatial-Systems-Compiler) and the
+[Frame Mapper](https://github.com/giasonpooni/Notations-FrameMapper-RunTime) and the
 geographic viewer consume explicit projections, not unrestricted private stores.
 
 Evidence, operation specifications, execution attempts, results and verification
@@ -61,12 +85,15 @@ Use [TECHNICAL_REFERENCE.md](TECHNICAL_REFERENCE.md) for the existing local
 terminal, corpus interfaces, MCP tools, setup, tests, deployment, rights and
 operating constraints. The complete pre-micro-tool README is preserved there
 **byte-for-byte using the same Git blob**, at the repository root so its relative
-file links retain their base. The new overview supersedes its user-facing title,
-not its technical limitations or policies.
+file links retain their base. That file is unchanged by this update. This overview
+supersedes older user-facing positioning, not technical limitations or policies.
 
-The repository URL and existing `payload-os`, `payload.*`, `notationsos.*`,
-`notation://`, environment-variable and `.payload` storage identities are
-unchanged. Historical records and retained runtime pins are not relabelled.
+The repository was also known as `Evidence-and-State-Management` and
+`Evidence-and-State-Ledger`. Existing `payload-os`, `payload.*`, `notationsos.*`,
+`notation://`, environment-variable and `.payload` storage identities remain
+unchanged. NET / `net` / `ciw` interfaces, historical records and retained runtime
+pins are not relabelled. Optional C++–Rust–Python–Julia bindings do not require
+four runtimes or provide arbitrary source translation.
 
 ## Licence, rights and publication
 
