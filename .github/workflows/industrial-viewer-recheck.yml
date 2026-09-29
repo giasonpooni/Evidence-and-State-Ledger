@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: giasonpooni/Geospatial-State-Visualization
-          ref: 86de8e9861720aceed4245589fee8a75856af8ac
+          ref: 71fea648424224996190138ba649ce59e26c2af3
           path: gsv
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020

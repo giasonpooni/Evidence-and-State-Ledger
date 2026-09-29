@@ -84,7 +84,7 @@ try{
   scenarios.push('damaged source copy blocks intact compiled artifact with503 and no successful-delivery audit; original evidence unchanged');
  }
 
- await page.screenshot({path:join(output,'authenticated-desktop.png')});await page.setViewportSize({width:390,height:900});await page.waitForTimeout(150);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:join(output,'authenticated-mobile.png')});scenarios.push('mobile provenance and geometry view retained');
+ await page.screenshot({path:join(output,'authenticated-desktop.png')});await page.setViewportSize({width:390,height:900});await page.waitForTimeout(150);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));const panelBox=await page.locator('.panel').boundingBox(),valueBox=await page.locator('#water-value').boundingBox();assert(panelBox&&valueBox&&valueBox.y>=panelBox.y&&valueBox.y+valueBox.height<=panelBox.y+panelBox.height);await page.screenshot({path:join(output,'authenticated-mobile.png')});scenarios.push('mobile provenance, visible measurement and geometry view retained');
  config.credentials[0].revoked=true;save();assert.equal((await page.request.get(base+'/industrial-data/index.json')).status(),401);
  await page.getByRole('button',{name:'Recheck retained capture',exact:true}).click();
  await page.waitForFunction(()=>window.industrialReview.access().state==='UNAVAILABLE');
