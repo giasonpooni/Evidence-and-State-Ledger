@@ -18,6 +18,8 @@ try{
  const page=await browser.newPage({viewport:{width:1440,height:1000}});page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(m.type()!=='error')return;const url=m.location().url;
   if(url===base+'/industrial-data/'+index.file&&/^Failed to load resource: the server responded with a status of (401|503) /.test(m.text()))expectedHttpErrors.push(m.text());else errors.push(m.text());});
  await page.route('**/*',async r=>{const u=new URL(r.request().url());if(u.origin===base)await r.continue();else{outbound.push(u.origin);await r.abort();}});
+ const health=await page.request.get(base+'/healthz');assert.equal(health.status(),200);assert.equal((await health.json()).status,'LIVE');
+ const ready=await page.request.get(base+'/readyz');assert.equal(ready.status(),selectionArg?200:503);scenarios.push('loopback liveness and dependency-aware readiness distinguish process from evidence readiness');
  assert.equal((await page.request.get(base+'/industrial-data/index.json')).status(),401);scenarios.push('unauthenticated data denied');
  await page.goto(base+'/login');await page.getByLabel('Access token').fill(token);await page.getByRole('button',{name:'Open review'}).click();
  await page.waitForFunction(()=>window.industrialReview!==undefined,undefined,{timeout:30000});inspection=await page.evaluate(()=>window.industrialReview.inspect());
@@ -41,7 +43,9 @@ try{
  scenarios.push('explicit UI recheck preserves exact digest, selected observation, camera and wireframe');
  const data=await page.request.get(base+'/industrial-data/'+index.file);assert.equal(data.status(),200);assert.equal(data.headers()['cache-control'],'no-store');assert.equal(data.headers()['x-artifact-digest'],index.sha256);
  const deliveries=readdirSync(join(root,'deliveries'));assert(deliveries.length>=3);for(const name of deliveries){const log=readFileSync(join(root,'deliveries',name),'utf8');assert(!log.includes(token));assert.equal(JSON.parse(log).artifactDigest,index.sha256);}
- scenarios.push('digest-bound data delivered with no-store and successful-access audit');
+ const chainFiles=readdirSync(join(root,'chain')).sort();assert(chainFiles.length>=deliveries.length);for(const name of chainFiles)assert(!readFileSync(join(root,'chain',name),'utf8').includes(token));
+ const metrics=await page.request.get(base+'/metrics',{headers:{Authorization:'Bearer '+token}});assert.equal(metrics.status(),200);assert((await metrics.text()).includes('notation_industrial_delivered_total'));
+ scenarios.push('digest-bound data is delivery-audited, hash-chained, no-store and exposes authenticated process counters');
  if(selectionArg){
   assert.equal(data.headers()['x-evidence-verification'],'RETAINED_BYTES_AND_DIRECT_BINDINGS');
   assert(['FRESH','STALE','NO_NUMERIC_OBSERVATIONS'].includes(data.headers()['x-observation-freshness']));
@@ -63,6 +67,7 @@ try{
   const sourceRelative=[selected.schedule.scheduleId,'attempts',selected.attemptId,'capture','terrain.tif'];
   const original=readFileSync(join(selected.refreshRoot,...sourceRelative));
   writeFileSync(join(copyRefresh,...sourceRelative),'CORRUPTED SCRATCH COPY');config.resources[0].requestFile=copySelection;save();
+  assert.equal((await page.request.get(base+'/readyz')).status(),503);
   const successCount=readdirSync(join(root,'deliveries')).length;
   assert.equal((await page.request.get(base+'/industrial-data/'+index.file)).status(),503);
   assert.equal(readdirSync(join(root,'deliveries')).length,successCount);
@@ -75,7 +80,7 @@ try{
   assert.equal(readdirSync(join(root,'deliveries')).length,successCount);
   await page.screenshot({path:join(output,'failed-dependency-ui.png')});
   assert(original.equals(readFileSync(join(selected.refreshRoot,...sourceRelative))));
-  config.resources[0].requestFile=resolve(selectionArg);save();
+  config.resources[0].requestFile=resolve(selectionArg);save();assert.equal((await page.request.get(base+'/readyz')).status(),200);
   await page.getByRole('button',{name:'Recheck retained capture',exact:true}).click();
   await page.waitForFunction(()=>window.industrialReview.access().state==='READY');
   assert(await page.locator('#review-data').isVisible());
@@ -85,7 +90,7 @@ try{
  }
 
  await page.screenshot({path:join(output,'authenticated-desktop.png')});await page.setViewportSize({width:390,height:900});await page.waitForTimeout(150);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));const panelBox=await page.locator('.panel').boundingBox(),valueBox=await page.locator('#water-value').boundingBox();assert(panelBox&&valueBox&&valueBox.y>=panelBox.y&&valueBox.y+valueBox.height<=panelBox.y+panelBox.height);await page.screenshot({path:join(output,'authenticated-mobile.png')});scenarios.push('mobile provenance, visible measurement and geometry view retained');
- config.credentials[0].revoked=true;save();assert.equal((await page.request.get(base+'/industrial-data/index.json')).status(),401);
+ config.credentials[0].revoked=true;save();assert.equal((await page.request.get(base+'/readyz')).status(),503);assert.equal((await page.request.get(base+'/industrial-data/index.json')).status(),401);
  await page.getByRole('button',{name:'Recheck retained capture',exact:true}).click();
  await page.waitForFunction(()=>window.industrialReview.access().state==='UNAVAILABLE');
  assert.equal(await page.locator('#review-data').isVisible(),false);
@@ -93,6 +98,6 @@ try{
  await page.screenshot({path:join(output,'revoked-mobile-ui.png')});
  scenarios.push('revocation denies the next request and hides prior viewer data on explicit recheck');
  assert.deepEqual(errors,[]);assert.deepEqual(outbound,[]);assert.equal(expectedHttpErrors.length,selectionArg?2:1);
- writeFileSync(join(output,'browser-results.json'),JSON.stringify({dataMode,scenarios,inspection,errors,outbound,expectedHttpErrors,expectedUnauthenticatedStatus:401,expectedRevokedStatus:401},null,2));
+ writeFileSync(join(output,'browser-results.json'),JSON.stringify({dataMode,scenarios,inspection,errors,outbound,expectedHttpErrors,expectedUnauthenticatedStatus:401,expectedRevokedStatus:401,auditEvents:readdirSync(join(root,'chain')).length},null,2));
 }catch(error){writeFileSync(join(output,'browser-results.json'),JSON.stringify({dataMode,scenarios,errors,outbound,expectedHttpErrors,failure:String(error)},null,2));throw error;}
 finally{await browser.close();service.server.closeAllConnections();await new Promise(r=>service.server.close(r));rmSync(root,{recursive:true,force:true});}

@@ -4,6 +4,8 @@ Description=External hourly trigger for the bounded ESM refresh planner
 [Timer]
 OnCalendar=hourly
 Persistent=true
+AccuracySec=1min
+RandomizedDelaySec=5min
 Unit=industrial-refresh.service
 
 [Install]
