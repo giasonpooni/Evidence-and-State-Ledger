@@ -121,6 +121,8 @@ jobs:
           git add package.json package-lock.json
           if ! git diff --cached --quiet; then
             git commit -m 'chore: patch Next production dependency to 16.3.7'
+            git fetch origin feat/industrial-runtime-hardening-v1-20260929
+            git rebase origin/feat/industrial-runtime-hardening-v1-20260929
             git push origin HEAD:feat/industrial-runtime-hardening-v1-20260929
           fi
       - uses: actions/upload-artifact@v4
