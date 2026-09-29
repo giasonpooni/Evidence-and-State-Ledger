@@ -548,6 +548,56 @@
         "github-actions:Notations-Systems-Terminal:36644807789"
       ],
       "notes": "Supports selective recomputation but explicitly does not establish physical causality."
+    },
+    {
+      "id": "E-008",
+      "kind": "EXPERIMENT",
+      "title": "Synthetic agro-food cold-chain thermal instrument transfer",
+      "statement": "Reuse the existing two-capacity thermal observer, covariance/dropout handling and prospective sensor selection unchanged on a synthetic post-harvest cold-chain core/shell temperature workload.",
+      "status": "SUPPORTED",
+      "domains": [
+        "agro-food",
+        "thermal-fluid-systems"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Systems-Terminal",
+          "revision": "50a8a3def0beed5f3439bee297e3d668cff5eac8",
+          "workflowRun": "36645217776",
+          "pullRequest": "91"
+        }
+      ],
+      "evidenceRefs": [
+        "artifact:agrofood-cold-chain-ubuntu-24.04:11068181879",
+        "artifact:agrofood-cold-chain-windows-latest:11067872454"
+      ],
+      "notes": "Synthetic thermal-state/sensor-selection transfer only; no crop, spoilage, food-safety or physical-validation claim."
+    },
+    {
+      "id": "O-008",
+      "kind": "OBSERVATION",
+      "title": "General thermal instrument transferred unchanged into a bounded agro-food workload",
+      "statement": "The existing thermal model/reference/observer handled a synthetic refrigerated product core/shell workload with explicit dropout and sensor-cost selection without adding an agriculture-specific estimator or solver.",
+      "status": "SUPPORTED",
+      "domains": [
+        "agro-food",
+        "thermal-fluid-systems"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Systems-Terminal",
+          "revision": "50a8a3def0beed5f3439bee297e3d668cff5eac8",
+          "workflowRun": "36645217776",
+          "pullRequest": "91"
+        }
+      ],
+      "evidenceRefs": [
+        "artifact:agrofood-cold-chain-ubuntu-24.04:11068181879",
+        "artifact:agrofood-cold-chain-windows-latest:11067872454"
+      ],
+      "notes": "One agro-food transfer case. Manufacturing/materials/energy/niche-agriculture field cases remain required for H-007."
     }
   ],
   "relations": [
@@ -697,6 +747,20 @@
       "target": "H-008",
       "kind": "SUPPORTS",
       "notes": "Observed reuse and delta separation support the bounded selective-recomputation hypothesis."
+    },
+    {
+      "relationId": "R-022",
+      "source": "E-008",
+      "target": "H-007",
+      "kind": "TESTS",
+      "notes": "Adds agro-food/thermal-fluid coverage to the cross-domain instrument-transfer hypothesis."
+    },
+    {
+      "relationId": "R-023",
+      "source": "O-008",
+      "target": "H-007",
+      "kind": "SUPPORTS",
+      "notes": "Observed reuse of the existing thermal instrument without a new agriculture-specific estimator."
     }
   ],
   "claims": {
