@@ -12,7 +12,7 @@ export const REFRESH_OPERATION={schema:'payload.industrial-refresh-operation.v1'
   sourceScope:'noaa-9414290-usgs-3dep-129x129',admission:'NEVER',release:'NEVER'} as const;
 async function run(command:string,args:string[],cwd:string):Promise<string>{
   return new Promise((done,fail)=>{const p=spawn(command,args,{cwd,shell:false,timeout:180000,stdio:['ignore','pipe','pipe'],
-    env:{PATH:process.env.PATH,HOME:process.env.HOME,PYTHONDONTWRITEBYTECODE:'1',NEXT_TELEMETRY_DISABLED:'1'}});
+    env:{NODE_ENV:'production',PATH:process.env.PATH,HOME:process.env.HOME,PYTHONDONTWRITEBYTECODE:'1',NEXT_TELEMETRY_DISABLED:'1'}});
     let output='',size=0;const capture=(chunk:Buffer)=>{size+=chunk.length;if(size>32768){p.kill('SIGKILL');fail(new Error('PROCESS_OUTPUT_LIMIT'));return;}output+=chunk.toString('utf8');};
     p.stdout.on('data',capture);p.stderr.on('data',chunk=>{size+=chunk.length;if(size>32768)p.kill('SIGKILL');});
     p.on('error',()=>fail(new Error('PIPELINE_PROCESS_UNAVAILABLE')));p.on('close',code=>code===0?done(output):fail(new Error('PIPELINE_PROCESS_FAILED')));
