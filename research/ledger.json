@@ -461,6 +461,28 @@
         "artifact:oscillator-representation-reduction-windows-latest:11066997786"
       ],
       "notes": "Operation-call ratio was 0.25. Hosted wall-time ratios were ~0.258 and ~0.244 but are not treated as stable performance claims."
+    },
+    {
+      "id": "H-007",
+      "kind": "HYPOTHESIS",
+      "title": "Instrumentation primitives transfer across industrial and agro-resource physical systems",
+      "statement": "A common instrumentation substrate can reuse time, measurement, calibration, filtering, state/uncertainty representation, optimization, provenance, transformation, verification and projection primitives across manufacturing, niche agriculture/agro-food and distributed energy systems while domain-specific constitutive, biological, reaction-kinetic, crop, rheological and equipment models remain specialist layers.",
+      "status": "OPEN",
+      "domains": [
+        "cross-domain-instrumentation"
+      ],
+      "testCorpus": [
+        "manufacturing",
+        "materials",
+        "niche-agriculture",
+        "agro-food",
+        "distributed-energy",
+        "thermal-fluid-systems",
+        "environmental-systems"
+      ],
+      "repositoryRefs": [],
+      "evidenceRefs": [],
+      "notes": "Open regional/testbed hypothesis. Canada/Montréal–Toronto is intended to stress industrial physical systems; Bordeaux/Nouvelle-Aquitaine is intended to stress agro-food, agriculture, energy and thermal/environmental systems. No geographic or universal transfer claim is established yet."
     }
   ],
   "relations": [
