@@ -14,7 +14,7 @@ async function fixture(){
  const config:ServerConfig={schema:'payload.industrial-distribution.v1',credentials:[credentialForToken(token,'operator:test',digest,at,end)],authorityKeys:[],resources:[{digest,kind:'REVIEW',file,requestFile:null,revoked:false}],activeReviewDigest:digest};
  const configFile=join(root,'access.json');const save=()=>writeFileSync(configFile,JSON.stringify(config));save();let now=at;
  const app=createDistributionServer({configFile,staticRoot:site,objectRoot:join(root,'objects'),auditRoot:root,now:()=>now});app.listen();await once(app.server,'listening');const address=app.server.address();if(!address||typeof address==='string')throw new Error('listen');
- const base='http://127.0.0.1:'+address.port,path='/v1/artifacts/'+digest.slice(7);return {root,config,save,file,token,bytes,path,base,request:(p=path,init:RequestInit={})=>fetch(base+p,init),auth:{Authorization:'Bearer '+token},clock:(value:string)=>{now=value;},close:async()=>{app.server.closeAllConnections();await new Promise<void>(r=>app.server.close(()=>r()));}};
+ const base='http://127.0.0.1:'+address.port,path='/v1/artifacts/'+digest.slice(7);return {root,config,save,file,token,bytes,path,base,app,request:(p=path,init:RequestInit={})=>fetch(base+p,init),auth:{Authorization:'Bearer '+token},clock:(value:string)=>{now=value;},close:async()=>{app.server.closeAllConnections();await new Promise<void>(r=>app.server.close(()=>r()));}};
 }
 it('liveness is coarse and legacy artifact-only review is not dependency-ready',async()=>{const f=await fixture();try{
  const live=await f.request('/healthz');expect(live.status).toBe(200);expect(await live.json()).toEqual({schema:'payload.industrial-health.v1',status:'LIVE'});
@@ -42,3 +42,9 @@ it('foreign origin and malformed/ambiguous credentials fail',async()=>{const f=a
  expect((await f.request(f.path,{method:'POST',headers:f.auth})).status).toBe(405);
 }finally{await f.close();}});
 it('a review cannot acquire released status by choosing the release route',async()=>{const f=await fixture();try{f.config.resources[0].kind='RELEASE';f.save();expect((await f.request(f.path,{headers:f.auth})).status).toBe(503);}finally{await f.close();}});
+
+it('drain state fails readiness and new data before process liveness disappears',async()=>{const f=await fixture();try{
+ f.app.beginDrain();const ready=await f.request('/readyz');expect(ready.status).toBe(503);expect(await ready.json()).toMatchObject({status:'HOLD',checks:[{detailCode:'SERVICE_DRAINING'}]});
+ const live=await f.request('/healthz');expect(live.status).toBe(200);expect(await live.json()).toMatchObject({status:'DRAINING'});
+ expect((await f.request(f.path,{headers:f.auth})).status).toBe(503);
+}finally{await f.close();}});
