@@ -8,6 +8,7 @@ import { qualifyAdmission, executeAdmission } from '../src/industrial-operations
 import { prepareInternalRelease, publishInternalRelease } from '../src/industrial-operations/release';
 import { refreshOnce } from '../src/industrial-operations/refresh';
 import { inspectRefresh } from '../src/industrial-operations/refresh-state';
+import { inspectRefreshResult } from '../src/industrial-operations/refresh-result';
 import { prepareRefreshQuarantine, quarantineRefresh } from '../src/industrial-operations/refresh-quarantine';
 import { fixedRefreshPipeline, REFRESH_OPERATION } from '../src/industrial-operations/pipeline';
 import { createDistributionServer, serverConfigSchema } from '../src/industrial-operations/distribution';
@@ -18,7 +19,7 @@ const configSchema=z.object({root:z.string().min(1),intakeRoot:z.string().min(1)
 function json(path:string){const bytes=readImmutableFile(dirname(path),[basename(path)],LIMIT);if(!bytes)throw new Error('FILE_UNAVAILABLE');return parseReplayJson(bytes,LIMIT);}
 async function main(){
   const [command,configFile,requestFile,approvalFile,...extra]=process.argv.slice(2);
-  if(command==='--help'||!command){console.log('industrial-operations qualify|admit|prepare-release|release CONFIG REQUEST [APPROVAL]\nindustrial-operations refresh|refresh-status|serve CONFIG\nindustrial-operations prepare-refresh-quarantine CONFIG ATTEMPT_ID\nindustrial-operations quarantine-refresh CONFIG REQUEST APPROVAL');return;}
+  if(command==='--help'||!command){console.log('industrial-operations qualify|admit|prepare-release|release CONFIG REQUEST [APPROVAL]\nindustrial-operations refresh|refresh-status|serve CONFIG\nindustrial-operations refresh-inspect CONFIG ATTEMPT_ID\nindustrial-operations prepare-refresh-quarantine CONFIG ATTEMPT_ID\nindustrial-operations quarantine-refresh CONFIG REQUEST APPROVAL');return;}
   if(!configFile||extra.length)throw new Error('INVALID_ARGUMENTS');const c=configSchema.parse(json(configFile));
   const keys=c.authorityKeys as AuthorityKey[],at=new Date().toISOString();let result:unknown;
   if(command==='refresh'){if(requestFile||approvalFile)throw new Error('INVALID_ARGUMENTS');
@@ -26,6 +27,9 @@ async function main(){
   }else if(command==='refresh-status'){if(requestFile||approvalFile)throw new Error('INVALID_ARGUMENTS');
     result=inspectRefresh({root:c.root,schedule:c.schedule,operation:REFRESH_OPERATION,authorityKeys:keys,at});
     if(['UNAVAILABLE','LOCKED','BLOCKED'].includes((result as {status:string}).status))process.exitCode=2;
+  }else if(command==='refresh-inspect'){if(!requestFile||approvalFile)throw new Error('INVALID_ARGUMENTS');
+    const inspected=inspectRefreshResult({root:c.root,intakeRoot:c.intakeRoot,schedule:c.schedule,authorityKeys:keys,at,attemptId:requestFile});
+    result=inspected;if(inspected.status!=='REINSPECTED')process.exitCode=2;
   }else if(command==='prepare-refresh-quarantine'){if(!requestFile||approvalFile)throw new Error('INVALID_ARGUMENTS');
     result=prepareRefreshQuarantine({root:c.root,schedule:c.schedule,operation:REFRESH_OPERATION,authorityKeys:keys,at,attemptId:requestFile});
   }else if(command==='quarantine-refresh'){if(!requestFile||!approvalFile)throw new Error('INVALID_ARGUMENTS');

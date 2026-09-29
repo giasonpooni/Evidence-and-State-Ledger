@@ -1,6 +1,6 @@
 /** Bounded internal review over the existing local evidence rail. No admission or release. */
-import { constants, closeSync, fstatSync, openSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { readImmutableFile } from '../data-os/local-files';
+import { parseReplayJson } from '../observation/json';
 import type { SourceRegistration } from '../data-os/contracts';
 import { byteDigest } from '../data-os/evidence-capture';
 import { LocalEvidenceIntake } from '../data-os/local-intake';
@@ -34,9 +34,9 @@ function validateUrl(url: URL, index: number): void {
 
 function requireValue(ok: unknown, code: string): asserts ok { if (!ok) throw new Error(code); }
 function readBounded(root: string, name: string): Buffer {
-  const fd = openSync(join(root, name), constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0));
-  try { const stat = fstatSync(fd); requireValue(stat.isFile() && stat.size > 0 && stat.size <= LIMIT, 'INVALID_CAPTURE_FILE'); return readFileSync(fd); }
-  finally { closeSync(fd); }
+  const bytes = readImmutableFile(root, [name], LIMIT);
+  requireValue(bytes && bytes.length > 0, 'INVALID_CAPTURE_FILE');
+  return bytes;
 }
 export function industrialReviewPolicy(sourceId: 'noaa-coops'|'usgs-3dep'|'gsc-usgs-grid'): SourceRegistration {
   return {
@@ -59,12 +59,11 @@ export interface IndustrialReview {
   canonicalAdmission: false; release: null; customerDistributionPermitted: false;
   sourceTruthClaimed: false; independentVerification: false; digest: string;
 }
-/** This function consumes an operator-selected local directory, not request-supplied paths. */
-export function retainIndustrialCapture(captureRoot: string, intakeRoot: string, allowInternalQualification: boolean,
-  inspectedAt = new Date().toISOString()): IndustrialReview {
-  requireValue(allowInternalQualification === true, 'EXPLICIT_INTERNAL_QUALIFICATION_REQUIRED');
+/** Reopen the same bounded source selection without intake, writes, or network. */
+export function readIndustrialCapture(captureRoot: string, inspectedAt: string) {
   requireValue(Number.isFinite(Date.parse(inspectedAt)), 'INVALID_REVIEW_TIME');
   const manifestBytes = readBounded(captureRoot, 'capture.json');
+  parseReplayJson(manifestBytes, LIMIT);
   const manifest = JSON.parse(manifestBytes.toString('utf8'));
   requireValue(manifest.schema === 'gsc.industrial-capture.v1' && manifest.status === 'CAPTURED_UNADMITTED' &&
     manifest.canonicalAdmission === false && manifest.release === null && manifest.stationId === '9414290', 'INVALID_CAPTURE_MANIFEST');
@@ -86,11 +85,19 @@ export function retainIndustrialCapture(captureRoot: string, intakeRoot: string,
   const derived = manifest.derived, gridBytes = readBounded(captureRoot,'terrain-grid.json');
   requireValue(derived.file === 'terrain-grid.json' && byteDigest(gridBytes) === derived.sha256 && gridBytes.length === derived.bytes &&
     derived.sourceArtifact === manifest.artifacts[3].sha256, 'DERIVED_BINDING_MISMATCH');
+  parseReplayJson(gridBytes, LIMIT);
   const grid = JSON.parse(gridBytes.toString('utf8'));
   requireValue(grid.schema === 'gsc.terrain-grid.v1' && grid.sourceArtifact === derived.sourceArtifact, 'DERIVED_LINEAGE_MISMATCH');
   requireValue(Number.isFinite(Date.parse(manifest.capturedAt)) && Date.parse(manifest.capturedAt)>=Math.max(...pending.map(p=>Date.parse(p.retrievedAt))) && Date.parse(manifest.capturedAt)<=Date.parse(inspectedAt),'INVALID_DERIVED_CAPTURE_TIME');
   pending.push({file:'terrain-grid.json',sourceId:'gsc-usgs-grid',bytes:gridBytes,retrievedAt:manifest.capturedAt});
-  const captureManifestDigest = byteDigest(manifestBytes), intake = new LocalEvidenceIntake(intakeRoot);
+  return { captureManifestDigest: byteDigest(manifestBytes), capturedAt: String(manifest.capturedAt), pending };
+}
+/** Explicit retention still uses the original intake and policy path. */
+export function retainIndustrialCapture(captureRoot: string, intakeRoot: string, allowInternalQualification: boolean,
+  inspectedAt = new Date().toISOString()): IndustrialReview {
+  requireValue(allowInternalQualification === true, 'EXPLICIT_INTERNAL_QUALIFICATION_REQUIRED');
+  const { captureManifestDigest, pending } = readIndustrialCapture(captureRoot, inspectedAt);
+  const intake = new LocalEvidenceIntake(intakeRoot);
   // Preflight source permissions for the whole batch before the first retained write.
   for (const p of pending) for (const operation of ['INGEST','DERIVE','RETRIEVE'] as const) {
     const policy = industrialReviewPolicy(p.sourceId);

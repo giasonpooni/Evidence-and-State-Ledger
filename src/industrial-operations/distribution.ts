@@ -8,6 +8,7 @@ import { readImmutableFile, publishImmutableFile } from '../data-os/local-files'
 import { encodeLocalRecord } from '../data-os/local-record';
 import { byteDigest } from '../data-os/evidence-capture';
 import { reinspectRelease } from './release';
+import { retainedReviewRequestSchema, reinspectRefreshResult } from './refresh-result';
 import { approvalAction, check, hash, id, instant, LIMIT, type AuthorityKey } from './authority';
 const tokenPattern=/^esm_[A-Za-z0-9_-]{43}$/;
 export const credentialSchema=z.object({credentialId:id,recipientId:id,tokenDigest:hash,notBefore:instant,notAfter:instant,
@@ -15,7 +16,7 @@ export const credentialSchema=z.object({credentialId:id,recipientId:id,tokenDige
 const keySchema=z.object({keyId:id,authorityId:id,publicKeyPem:z.string().min(1).max(4096),actions:z.array(approvalAction).min(1).max(3),notBefore:instant,notAfter:instant,revoked:z.boolean()}).strict();
 export const serverConfigSchema=z.object({schema:z.literal('payload.industrial-distribution.v1'),
   credentials:z.array(credentialSchema).min(1).max(64),authorityKeys:z.array(keySchema).max(32),
-  resources:z.array(z.object({digest:hash,kind:z.enum(['REVIEW','RELEASE']),file:z.string().min(1).max(2048),requestFile:z.string().max(2048).nullable(),revoked:z.boolean()}).strict()).max(128),
+  resources:z.array(z.object({digest:hash,kind:z.enum(['REVIEW','RELEASE','RETAINED_REVIEW']),file:z.string().min(1).max(2048),requestFile:z.string().max(2048).nullable(),revoked:z.boolean()}).strict()).max(128),
   activeReviewDigest:hash.nullable()}).strict();
 export type ServerConfig=z.infer<typeof serverConfigSchema>;
 export const tokenDigest=(token:string)=>byteDigest(Buffer.from(token,'utf8'));
@@ -72,17 +73,33 @@ export function createDistributionServer(options:{configFile:string;staticRoot:s
         if(!digest||!resource||resource.revoked||!auth.credential.artifacts.includes(digest)){deny(403);return;}
         const bytes=readPath(resource.file);check(byteDigest(bytes)===digest,'ARTIFACT_HASH_MISMATCH');
         const value=parseReplayJson(bytes,LIMIT) as Record<string,unknown>;
-        if(resource.kind==='REVIEW')check(value.schema==='gsc.industrial-review.v1'&&value.audience==='INTERNAL'&&value.status==='UNADMITTED_SOURCE_REVIEW'&&value.canonicalAdmission===false&&value.release===null,'NOT_AN_INTERNAL_REVIEW');
+        let retainedInspection: ReturnType<typeof reinspectRefreshResult>['report'] | null = null;
+        if(resource.kind==='RETAINED_REVIEW'){
+          check(resource.requestFile,'RETAINED_SELECTION_REQUIRED');
+          const selected=retainedReviewRequestSchema.parse(parseReplayJson(readPath(resource.requestFile),LIMIT));
+          check(selected.compiledDigest===digest,'RETAINED_SELECTION_MISMATCH');
+          const verified=reinspectRefreshResult({root:selected.refreshRoot,intakeRoot:selected.intakeRoot,
+            schedule:selected.schedule,attemptId:selected.attemptId,at,authorityKeys:config.authorityKeys as AuthorityKey[]});
+          check(verified.report.result.compiledDigest===digest && verified.compiledBytes.equals(bytes),'RETAINED_SELECTION_MISMATCH');
+          retainedInspection=verified.report;
+        }else if(resource.kind==='REVIEW')check(value.schema==='gsc.industrial-review.v1'&&value.audience==='INTERNAL'&&value.status==='UNADMITTED_SOURCE_REVIEW'&&value.canonicalAdmission===false&&value.release===null,'NOT_AN_INTERNAL_REVIEW');
         else {
           check(!index&&!path.startsWith('/industrial-data/')&&resource.requestFile,'RELEASE_NOT_REVIEW');
           const request=parseReplayJson(readPath(resource.requestFile!),LIMIT);
           const release=await reinspectRelease(request,value,config.authorityKeys as AuthorityKey[],options.objectRoot,at);
           check(release.recipientId===auth.credential.recipientId,'RECIPIENT_MISMATCH');
         }
+        if(retainedInspection)publishImmutableFile(options.auditRoot,['inspections',retainedInspection.digest.slice(7)+'.json'],encodeLocalRecord(retainedInspection),LIMIT);
         // A successful access is retained before a payload leaves. No token, cookie or raw URL enters this log.
-        publishImmutableFile(options.auditRoot,['deliveries',`${randomUUID()}.json`],encodeLocalRecord({schema:'payload.industrial-delivery-audit.v1',at,credentialId:auth.credential.credentialId,recipientId:auth.credential.recipientId,artifactDigest:digest,kind:resource.kind}),LIMIT);
+        publishImmutableFile(options.auditRoot,['deliveries',`${randomUUID()}.json`],encodeLocalRecord({schema:'payload.industrial-delivery-audit.v1',at,credentialId:auth.credential.credentialId,recipientId:auth.credential.recipientId,artifactDigest:digest,kind:resource.kind,...(retainedInspection?{inspectionDigest:retainedInspection.digest,
+          historyDigest:retainedInspection.historyDigest,freshness:retainedInspection.freshness}: {})}),LIMIT);
         const out=index?Buffer.from(JSON.stringify({schema:'gsc.industrial-review-index.v1',audience:'INTERNAL',file:`review-${digest.slice(7)}.json`,sha256:digest,bytes:bytes.length,canonicalAdmission:false,release:null})):bytes;
-        res.setHeader('Content-Type','application/json');res.setHeader('X-Artifact-Digest',digest);res.end(out);return;
+        res.setHeader('Content-Type','application/json');res.setHeader('X-Artifact-Digest',digest);
+        res.setHeader('X-Evidence-Verification',retainedInspection?'RETAINED_BYTES_AND_DIRECT_BINDINGS':resource.kind==='REVIEW'?'ARTIFACT_ONLY':'NATIVE_RELEASE');
+        if(retainedInspection){res.setHeader('X-Inspection-Digest',retainedInspection.digest);
+          res.setHeader('X-Observation-Freshness',retainedInspection.freshness.state);
+          res.setHeader('X-Observation-Age-Ms',retainedInspection.freshness.observationAgeMs===null?'unknown':String(retainedInspection.freshness.observationAgeMs));}
+        res.end(out);return;
       }
       // Serve only the compiled viewer's known static path classes, never a directory or its embedded data.
       const name=path==='/'?'industrial.html':path.slice(1);
