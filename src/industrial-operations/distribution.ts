@@ -39,8 +39,9 @@ function authenticate(req:IncomingMessage,config:ServerConfig,now:number){
 function readPath(path:string,max=LIMIT){const b=readImmutableFile(dirname(path),[basename(path)],max);check(b,'FILE_UNAVAILABLE');return b;}
 const loginScript="document.querySelector('form').onsubmit=async e=>{e.preventDefault();const i=document.querySelector('input');let t=i.value;i.value='';try{const r=await fetch('/session',{method:'POST',headers:{Authorization:'Bearer '+t}});t='';if(!r.ok)throw Error();location.assign('/industrial.html');}catch{document.querySelector('output').textContent='Access denied or unavailable.';}};";
 const loginHtml=`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>ESM internal access</title><link rel="icon" href="data:,"><h1>Industrial source review</h1><p>Authenticated internal access. A credential does not admit or release evidence.</p><form><label>Access token <input type="password" autocomplete="off" maxlength="47" required></label><button>Open review</button></form><output></output><script>${loginScript}</script>`;
-export function createDistributionServer(options:{configFile:string;staticRoot:string;objectRoot:string;auditRoot:string;now?:()=>string}){
-  const now=options.now??(()=>new Date().toISOString());let boundPort=0;let count=0,windowStart=performance.now();
+export interface DistributionReadinessProbe { status:'READY'|'NOT_READY'; assessedAt:string; reasonCodes:readonly string[]; }
+export function createDistributionServer(options:{configFile:string;staticRoot:string;objectRoot:string;auditRoot:string;now?:()=>string;readiness?:()=>DistributionReadinessProbe|Promise<DistributionReadinessProbe>}){
+  const now=options.now??(()=>new Date().toISOString());let boundPort=0;let count=0,windowStart=performance.now(),draining=false;
   const server=createServer({maxHeaderSize:8192},async(req,res)=>{
     res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('Cross-Origin-Resource-Policy','same-origin');
     const deny=(status:number)=>{res.statusCode=status;res.setHeader('Content-Type','application/json');res.end('{"error":"ACCESS_UNAVAILABLE"}');};
@@ -50,6 +51,15 @@ export function createDistributionServer(options:{configFile:string;staticRoot:s
       check(!req.headers.origin||req.headers.origin===`http://${host}`,'CROSS_ORIGIN');
       check(!req.headers['sec-fetch-site']||['same-origin','none'].includes(String(req.headers['sec-fetch-site'])),'CROSS_ORIGIN');
       const path=req.url??'';check(path.length<=512&&!path.includes('?')&&!path.includes('%')&&!path.includes('..'),'INVALID_PATH');
+      if(path==='/healthz'&&req.method==='GET'){
+        res.statusCode=200;res.setHeader('Content-Type','application/json');res.end(JSON.stringify({schema:'payload.industrial-health.v1',status:draining?'DRAINING':'ALIVE'}));return;
+      }
+      if(path==='/readyz'&&req.method==='GET'){
+        const report=draining?{status:'NOT_READY' as const,assessedAt:instant.parse(now()),reasonCodes:['DRAINING']}:
+          options.readiness?await options.readiness():{status:'NOT_READY' as const,assessedAt:instant.parse(now()),reasonCodes:['READINESS_NOT_CONFIGURED']};
+        res.statusCode=report.status==='READY'?200:503;res.setHeader('Content-Type','application/json');
+        res.end(JSON.stringify({schema:'payload.industrial-readiness-probe.v1',status:report.status,assessedAt:report.assessedAt,reasonCodes:report.reasonCodes}));return;
+      }
       if(path==='/login'&&req.method==='GET'){
         res.setHeader('Content-Type','text/html; charset=utf-8');res.setHeader('Content-Security-Policy',`default-src 'none'; img-src data:; script-src 'sha256-${createHash('sha256').update(loginScript).digest('base64')}'; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'`);res.end(loginHtml);return;
       }
@@ -111,7 +121,8 @@ export function createDistributionServer(options:{configFile:string;staticRoot:s
   });
   server.requestTimeout=15000;server.headersTimeout=10000;server.keepAliveTimeout=5000;
   server.on('listening',()=>{const address=server.address();if(address&&typeof address!=='string')boundPort=address.port;});
-  return {server,listen:(port=0)=>{check(Number.isInteger(port)&&port>=0&&port<=65535,'INVALID_PORT');return server.listen(port,'127.0.0.1');}};
+  return {server,listen:(port=0)=>{check(Number.isInteger(port)&&port>=0&&port<=65535,'INVALID_PORT');return server.listen(port,'127.0.0.1');},
+    beginDrain:()=>{draining=true;server.closeIdleConnections();},isDraining:()=>draining};
 }
 /** Raw key material is returned to the explicit provisioning caller, never written into config or logs. */
 export function credentialForToken(token:string,recipientId:string,artifactDigest:string,notBefore:string,notAfter:string){
