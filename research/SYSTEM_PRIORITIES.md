@@ -266,16 +266,19 @@ is established.
 
 ## Immediate ordered queue
 
-1. Qualify System Board V1.
-2. Qualify deterministic Parameter Program V1.
-3. Add explicit Transform / Projection / loss-validity contract.
-4. Run Needle on Cartesian/projectile.
-5. Run Needle on energy/thermal network.
-6. Run Needle on state-estimation workload.
-7. Run Board/Parameter Program on thermal or energy workload.
-8. Build Board visual projection + click-to-Needle.
-9. Expand agro-food/niche-agriculture transfer experiments.
-10. Only then add additional cloud/HPC/backend integrations unless a current
+1. **System Board V1 — qualified.**
+2. **Deterministic Parameter Program V1 — qualified.**
+3. **Representation + Morphism Registry V1 — qualified in signal domain.**
+4. Bind Board Transform / Project / Render nodes to morphism identities.
+5. Add the intervention-preservation/representation-expansion gate to Needle.
+6. Add a finite cross-representation commutativity witness.
+7. Run Needle on Cartesian/projectile.
+8. Run Needle on energy/thermal network.
+9. Run Needle on state-estimation workload.
+10. Run Board/Parameter Program/Morphism contracts on thermal or energy workload.
+11. Build Board visual projection + click-to-Needle.
+12. Expand agro-food/niche-agriculture transfer experiments.
+13. Only then add additional cloud/HPC/backend integrations unless a current
     workload has already exceeded local capacity.
 
 The ordering may change when an experiment falsifies an assumption. A failed
