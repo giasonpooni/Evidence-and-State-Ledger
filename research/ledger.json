@@ -598,6 +598,74 @@
         "artifact:agrofood-cold-chain-windows-latest:11067872454"
       ],
       "notes": "One agro-food transfer case. Manufacturing/materials/energy/niche-agriculture field cases remain required for H-007."
+    },
+    {
+      "id": "H-009",
+      "kind": "HYPOTHESIS",
+      "title": "Representation contracts can separate query preservation from intervention preservation",
+      "statement": "A scientific representation can explicitly declare which named queries remain supported, which interventions remain well-defined, which distinctions are lost, and how richer retained detail can be recovered, without changing the underlying execution-engine selection semantics.",
+      "status": "SUPPORTED",
+      "domains": [
+        "scientific-representation"
+      ],
+      "testCorpus": [
+        "signal",
+        "state-estimation",
+        "spatial",
+        "scale-coarsening",
+        "visual-rendering"
+      ],
+      "repositoryRefs": [],
+      "evidenceRefs": [],
+      "notes": "Currently supported only by a signal-domain periodogram transform contract. Other representation families remain required."
+    },
+    {
+      "id": "E-009",
+      "kind": "EXPERIMENT",
+      "title": "Representation + Morphism Registry V1 periodogram qualification",
+      "statement": "Bind a typed scientific time-series→periodogram morphism to the existing analysis.spectrum.v1 semantic capability, declare validity/loss/uncertainty/reversibility/query/intervention contracts, then execute the real oscillator q-channel provider and retain a finite witness.",
+      "status": "SUPPORTED",
+      "domains": [
+        "signal",
+        "scientific-representation"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Systems-Terminal",
+          "revision": "8b1bbecff3f85db0120cfcadae6aaf01da4caca6",
+          "workflowRun": "36648859211",
+          "pullRequest": "95"
+        }
+      ],
+      "evidenceRefs": [
+        "github-actions:Notations-Systems-Terminal:36648859211"
+      ],
+      "notes": "30 focused representation/morphism + Board/Parameter tests passed on Ubuntu and Windows. Synthetic oscillator evidence only."
+    },
+    {
+      "id": "O-009",
+      "kind": "OBSERVATION",
+      "title": "Lossy periodogram representation preserved declared spectral queries without claiming time-domain intervention support",
+      "statement": "The qualified periodogram morphism retained source evidence identity and the declared frequency-domain output contract while explicitly remaining LOSSY, non-reversible, and declaring no supported time-domain interventions. Engine selection remained in the pre-existing SemanticRegistry.",
+      "status": "SUPPORTED",
+      "domains": [
+        "signal",
+        "scientific-representation"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Systems-Terminal",
+          "revision": "8b1bbecff3f85db0120cfcadae6aaf01da4caca6",
+          "workflowRun": "36648859211",
+          "pullRequest": "95"
+        }
+      ],
+      "evidenceRefs": [
+        "github-actions:Notations-Systems-Terminal:36648859211"
+      ],
+      "notes": "Finite software witness; does not establish physical validity or a universal morphism law."
     }
   ],
   "relations": [
@@ -761,6 +829,20 @@
       "target": "H-007",
       "kind": "SUPPORTS",
       "notes": "Observed reuse of the existing thermal instrument without a new agriculture-specific estimator."
+    },
+    {
+      "relationId": "R-024",
+      "source": "E-009",
+      "target": "H-009",
+      "kind": "TESTS",
+      "notes": "Periodogram registry qualification tests explicit query/intervention/loss semantics on a real semantic capability."
+    },
+    {
+      "relationId": "R-025",
+      "source": "O-009",
+      "target": "H-009",
+      "kind": "SUPPORTS",
+      "notes": "Observed loss/query/intervention separation supports the engineering hypothesis in the signal domain."
     }
   ],
   "claims": {
