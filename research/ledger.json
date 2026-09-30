@@ -666,6 +666,76 @@
         "github-actions:Notations-Systems-Terminal:36648859211"
       ],
       "notes": "Finite software witness; does not establish physical validity or a universal morphism law."
+    },
+    {
+      "id": "H-010",
+      "kind": "HYPOTHESIS",
+      "title": "Intervention planning should be gated by representation sufficiency",
+      "statement": "A local intervention should be planned through a representation only when that representation explicitly preserves the intervention; otherwise the system should recover a declared richer representation with retained evidence or refuse rather than extrapolate unsupported fine-grained effects.",
+      "status": "SUPPORTED",
+      "domains": [
+        "scientific-representation",
+        "incremental-computation"
+      ],
+      "testCorpus": [
+        "signal",
+        "state-estimation",
+        "spatial",
+        "scale-coarsening",
+        "visual-rendering"
+      ],
+      "repositoryRefs": [],
+      "evidenceRefs": [],
+      "notes": "Currently supported only in the signal-domain time-series/periodogram fixture. No universal sufficiency criterion is claimed."
+    },
+    {
+      "id": "E-010",
+      "kind": "EXPERIMENT",
+      "title": "Representation-aware Needle LOCAL/EXPAND/REFUSE qualification",
+      "statement": "Evaluate one time-domain channel-selection intervention against exact time-series and lossy periodogram representation contracts, requiring LOCAL only for the representation that supports the intervention, EXPAND only with declared richer representation plus retained evidence, and REFUSE otherwise.",
+      "status": "SUPPORTED",
+      "domains": [
+        "signal",
+        "scientific-representation",
+        "incremental-computation"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Systems-Terminal",
+          "revision": "9bfa40075625439545066447cab4074e0215f3d1",
+          "workflowRun": "36650923871",
+          "pullRequest": "96"
+        }
+      ],
+      "evidenceRefs": [
+        "github-actions:Notations-Systems-Terminal:36650923871"
+      ],
+      "notes": "22 focused tests passed on Ubuntu and Windows. Gate performs no materialization or execution."
+    },
+    {
+      "id": "O-010",
+      "kind": "OBSERVATION",
+      "title": "Lossy periodogram was prevented from supporting an undeclared time-domain intervention",
+      "statement": "The intervention gate allowed local planning through the retained time-series representation, refused the same intervention through the periodogram without richer retained state, and required explicit expansion to the declared time-series representation when retained source evidence was supplied.",
+      "status": "SUPPORTED",
+      "domains": [
+        "signal",
+        "scientific-representation"
+      ],
+      "testCorpus": [],
+      "repositoryRefs": [
+        {
+          "repository": "giasonpooni/Notations-Systems-Terminal",
+          "revision": "9bfa40075625439545066447cab4074e0215f3d1",
+          "workflowRun": "36650923871",
+          "pullRequest": "96"
+        }
+      ],
+      "evidenceRefs": [
+        "github-actions:Notations-Systems-Terminal:36650923871"
+      ],
+      "notes": "Supports representation-aware planning in one signal-domain case; does not establish a Markov blanket, unique inverse, or categorical naturality law."
     }
   ],
   "relations": [
@@ -843,6 +913,27 @@
       "target": "H-009",
       "kind": "SUPPORTS",
       "notes": "Observed loss/query/intervention separation supports the engineering hypothesis in the signal domain."
+    },
+    {
+      "relationId": "R-026",
+      "source": "E-010",
+      "target": "H-010",
+      "kind": "TESTS",
+      "notes": "LOCAL/EXPAND/REFUSE qualification tests intervention sufficiency against explicit representation contracts."
+    },
+    {
+      "relationId": "R-027",
+      "source": "O-010",
+      "target": "H-010",
+      "kind": "SUPPORTS",
+      "notes": "Observed refusal/expansion behavior supports fail-closed representation-aware intervention planning in the signal domain."
+    },
+    {
+      "relationId": "R-028",
+      "source": "E-010",
+      "target": "H-009",
+      "kind": "TESTS",
+      "notes": "Intervention gate operationalizes the query-versus-intervention distinction declared by H-009."
     }
   ],
   "claims": {
