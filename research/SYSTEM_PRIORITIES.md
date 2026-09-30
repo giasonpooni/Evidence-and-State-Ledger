@@ -269,17 +269,37 @@ is established.
 1. **System Board V1 — qualified.**
 2. **Deterministic Parameter Program V1 — qualified.**
 3. **Representation + Morphism Registry V1 — qualified in signal domain.**
-4. Bind Board Transform / Project / Render nodes to morphism identities.
-5. Add the intervention-preservation/representation-expansion gate to Needle.
+4. **Representation-aware Needle gate — qualified in signal domain.**
+5. Bind Board Transform / Project / Render nodes to morphism identities.
 6. Add a finite cross-representation commutativity witness.
-7. Run Needle on Cartesian/projectile.
-8. Run Needle on energy/thermal network.
-9. Run Needle on state-estimation workload.
-10. Run Board/Parameter Program/Morphism contracts on thermal or energy workload.
-11. Build Board visual projection + click-to-Needle.
-12. Expand agro-food/niche-agriculture transfer experiments.
-13. Only then add additional cloud/HPC/backend integrations unless a current
+7. Add an explicit coarse→rich expansion/materialization contract that may return a set/distribution of compatible detailed states rather than one inverse.
+8. Run Needle on Cartesian/projectile.
+9. Run Needle on energy/thermal network.
+10. Run Needle on state-estimation workload.
+11. Run Board/Parameter Program/Morphism contracts on thermal or energy workload.
+12. Build Board visual projection + click-to-Needle.
+13. Expand agro-food/niche-agriculture transfer experiments.
+14. Only then add additional cloud/HPC/backend integrations unless a current
     workload has already exceeded local capacity.
 
 The ordering may change when an experiment falsifies an assumption. A failed
 experiment is a reason to revise the queue, not to hide the failure.
+
+
+## Ambient-space / hierarchy research note
+
+Do not force the entire system into one universal manifold or one vector space.
+
+Current research preference is a **fibered/indexed family of representation spaces**:
+the context/scale/task forms a base, while different fibers may legitimately be
+graphs, relations, vector spaces, probability spaces, spatial structures,
+function spaces, quotient/groupoid objects or other specialized representations.
+
+Use Fréchet/convenient/diffeological/stack-like mathematics only where the actual
+objects satisfy the required mathematical structure.
+
+The storage/context direction is **Lazy Scientific State**:
+retain generators/templates, parameter spaces, coupling constraints,
+representation/projection maps, deltas and evidence; materialize detailed state
+only for the task-relevant branch. This remains a research/engineering direction,
+not a claim that the implementation is already a moduli stack or fiber bundle.
