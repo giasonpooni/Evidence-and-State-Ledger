@@ -1,0 +1,46 @@
+name: Research ledger
+on:
+  pull_request:
+    paths:
+      - 'research/**'
+      - 'src/research/**'
+      - 'scripts/research-ledger.entry.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/research-ledger.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ledger:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: npm
+      - run: npm ci
+      - name: Research ledger contract tests
+        run: npx vitest run src/research/researchLedger.test.ts --reporter=verbose
+      - name: Validate committed cross-repository ledger
+        run: npm run --silent research:ledger research/ledger.json > research-summary.json
+      - name: Require provisional epistemic posture
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const result = JSON.parse(fs.readFileSync('research-summary.json','utf8'));
+          if (result.schema !== 'notations.research-ledger-summary.v1') throw new Error('wrong schema');
+          if (result.claims.empiricalCoverageIsNotUniversalityProof !== true) throw new Error('coverage must not imply universality');
+          if (result.claims.automaticPromotionToAxiom !== false) throw new Error('automatic axiom promotion forbidden');
+          if (result.recordCounts.EXPERIMENT < 4) throw new Error('expected seeded cross-repository experiments');
+          if (result.recordCounts.COUNTEREXAMPLE < 1) throw new Error('expected retained counterexample');
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: research-ledger-evidence
+          if-no-files-found: error
+          path: research-summary.json
