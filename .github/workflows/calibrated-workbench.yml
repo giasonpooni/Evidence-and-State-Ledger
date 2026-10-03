@@ -1,0 +1,27 @@
+name: Calibrated workbench candidate evidence
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  calibrated-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci --ignore-scripts
+      - run: python -m pip install numpy==2.4.3 websockets==16.0
+      - run: npm run instrument:workbench:build
+      - run: npx vitest run src/data-os/instrument-result.test.ts src/data-os/evidence-capture.test.ts src/data-os/file-object-store.test.ts
+      - run: python -B scripts/test_instrument_replay_verify.py
+      - name: Real calibrated replay, policy refusal, withdrawal and file-store retention
+        run: python -B scripts/check_calibrated_workbench.py

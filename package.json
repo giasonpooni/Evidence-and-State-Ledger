@@ -41,6 +41,7 @@
     "mcp": "esbuild src/mcp/server.ts --bundle --platform=node --format=esm --alias:@=./src --outfile=.stamp/mcp.mjs --log-level=warning --banner:js=\"import { createRequire } from \\\"module\\\"; const require = createRequire(import.meta.url);\" && node .stamp/mcp.mjs",
     "admit": "esbuild scripts/admit.entry.ts --bundle --platform=node --format=esm --outfile=.stamp/admit.mjs --log-level=warning && node .stamp/admit.mjs",
     "instrument:inspect": "esbuild scripts/instrument-result.entry.ts --bundle --platform=node --format=esm --outfile=.stamp/instrument-result.mjs --log-level=warning && node .stamp/instrument-result.mjs",
+    "instrument:workbench:build": "esbuild scripts/workbench-candidate.entry.ts --bundle --platform=node --format=esm --outfile=.stamp/workbench-candidate.mjs --log-level=warning",
     "mutate:dossier": "node scripts/mutate-ledger.mjs src/db/dossierLedger.mutations.json"
   },
   "dependencies": {
