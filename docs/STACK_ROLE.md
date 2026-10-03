@@ -1,6 +1,7 @@
 # Evidence and State Management in the instrumentation stack
 
-Notation Systems develops computational instrumentation and evidence infrastructure for industrial and cyber-physical systems.
+Notation Systems Inc. is a scientific computing and systems engineering company developing computational instruments, software and interactive environments for understanding and building physical and virtual systems.
+The shared development direction connects measurement, state estimation and sensor fusion, scientific modelling, simulation and execution. This component contributes through the current boundary below; the expanded company scope does not imply new implemented capabilities.
 This component owns **evidence retention, state admission and release**. The [stack map](https://github.com/giasonpooni/Computational-Instrumentation-Workbench/blob/main/docs/STACK.md) locates all public components and distinguishes implemented paths from specifications and scaffolds.
 
 ## Current boundary

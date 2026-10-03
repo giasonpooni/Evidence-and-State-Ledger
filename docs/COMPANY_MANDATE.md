@@ -5,31 +5,47 @@ For the current public component inventory and integration boundaries, see the
 
 Current technical identity and repository naming, 2026-09-20.
 
-Notation Systems develops computational instrumentation and evidence infrastructure
-for industrial and cyber-physical systems. It connects observations, mathematical
-models, computation, inspection and governed information over provenance-bearing
-state. This extends the firm's existing physical-economy information-production
-mandate and preserves its implemented acquisition, corpus, policy and release
-mechanisms.
+**Notation Systems Inc.** is the parent organization in the owner-declared
+parent/child company hierarchy. It is a scientific computing and systems
+engineering company developing computational instruments, software and
+interactive environments for understanding and building physical and virtual
+systems.
+
+Its development direction connects measurement, state estimation and sensor
+fusion, scientific modelling, simulation and execution, from materials and
+machines to interactive worlds. Each repository's implemented capabilities and
+qualification limits remain those documented for that component.
+
+The computational instrumentation and evidence stack connects observations,
+mathematical models, computation, inspection and governed information over
+provenance-bearing state. The broader company direction extends the existing
+physical-economy information-production mandate and preserves its implemented
+acquisition, corpus, policy and release mechanisms.
 
 ## Organization
 
-**Notation Systems Inc.** is the parent organization.
+**Notation Systems Inc.** is the parent organization in the owner-declared parent/child company hierarchy.
 
-| Operating division | Focus |
+| Activity area | Focus |
 | --- | --- |
-| **Notations Gaming** | Games, graphics and interactive worlds; replaces the Cartesian Graphics studio label. |
-| **Notations Manufacturing** | Industrial design, materials, manufacturing and production systems. |
-| **Notations Laboratories** | Research, scientific computing, simulation and experimental validation. |
+| **Notations Gaming** | Games, graphics, world building, interactive environments and gameplay simulation; replaces the Cartesian Graphics studio label. |
+| **Notations Manufacturing** | Design, machinery integration, process development, fabrication and production systems. |
+| **Notations Laboratories** | Research and experimental validation in scientific computing, measurement, physics and chemistry modelling, materials and simulation. |
 
-State Ledger is shared evidence and state infrastructure across these divisions.
+State Ledger is shared evidence and state infrastructure across these companies.
 It retains and governs source material, versioned state, admission and releases;
 domain products and information delivery retain their existing responsibilities.
 
 Evidence, operation, execution and verification identities remain separate.
 Game and simulation state do not acquire industrial evidence or canonical-state
-authority through shared tooling. Cross-division handoffs use explicit contracts
+authority through shared tooling. Cross-company handoffs use explicit contracts
 and the existing admission, execution and release boundaries.
+
+Scientific and industrial applications require calibration, uncertainty,
+repeatability, validation and documented operating envelopes appropriate to the
+application. Simulation alone does not validate a physical model or authorize
+machinery control. Gaming prioritizes interaction, visual quality and play;
+reusable simulations do not make gameplay state scientific evidence.
 
 ## Evidence and State Management
 
