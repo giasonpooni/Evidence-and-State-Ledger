@@ -1,4 +1,4 @@
-# Notation Systems mandate
+# Notation Systems Inc. mandate
 
 For the current public component inventory and integration boundaries, see the
 [Notation Systems stack map](https://github.com/giasonpooni/Computational-Instrumentation-Workbench/blob/main/docs/STACK.md) and [this component's role](STACK_ROLE.md).
@@ -11,6 +11,25 @@ models, computation, inspection and governed information over provenance-bearing
 state. This extends the firm's existing physical-economy information-production
 mandate and preserves its implemented acquisition, corpus, policy and release
 mechanisms.
+
+## Organization
+
+**Notation Systems Inc.** is the parent organization.
+
+| Operating division | Focus |
+| --- | --- |
+| **Notations Gaming** | Games, graphics and interactive worlds; replaces the Cartesian Graphics studio label. |
+| **Notations Manufacturing** | Industrial design, materials, manufacturing and production systems. |
+| **Notations Laboratories** | Research, scientific computing, simulation and experimental validation. |
+
+State Ledger is shared evidence and state infrastructure across these divisions.
+It retains and governs source material, versioned state, admission and releases;
+domain products and information delivery retain their existing responsibilities.
+
+Evidence, operation, execution and verification identities remain separate.
+Game and simulation state do not acquire industrial evidence or canonical-state
+authority through shared tooling. Cross-division handoffs use explicit contracts
+and the existing admission, execution and release boundaries.
 
 ## Evidence and State Management
 
