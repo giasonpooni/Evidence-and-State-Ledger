@@ -1,0 +1,133 @@
+{
+  "schema": "caravan.po-exception-request.v1",
+  "asOf": "2026-09-29T12:00:00Z",
+  "policy": {
+    "trackingStaleAfterHours": 24
+  },
+  "purchaseOrders": [
+    {
+      "poId": "PO-4738",
+      "supplierId": "supplier-a",
+      "plantId": "plant-4",
+      "materialId": "pp-homopolymer",
+      "quantity": 100,
+      "requiredBy": "2026-10-02T12:00:00Z",
+      "evidenceRefs": [
+        "notation://evidence/fixture/po-4738"
+      ]
+    },
+    {
+      "poId": "PO-4740",
+      "supplierId": "supplier-b",
+      "plantId": "plant-4",
+      "materialId": "pp-homopolymer",
+      "quantity": 75,
+      "requiredBy": "2026-10-06T12:00:00Z",
+      "evidenceRefs": [
+        "notation://evidence/fixture/po-4740"
+      ]
+    },
+    {
+      "poId": "PO-4742",
+      "supplierId": "supplier-c",
+      "plantId": "plant-7",
+      "materialId": "hdpe-injection",
+      "quantity": 50,
+      "requiredBy": "2026-10-05T12:00:00Z",
+      "evidenceRefs": [
+        "notation://evidence/fixture/po-4742"
+      ]
+    }
+  ],
+  "shipments": [
+    {
+      "shipmentId": "SHIP-4738",
+      "poId": "PO-4738",
+      "quantity": 100,
+      "status": "IN_TRANSIT",
+      "eta": {
+        "earliest": "2026-10-03T08:00:00Z",
+        "latest": "2026-10-03T18:00:00Z"
+      },
+      "lastEventAt": "2026-09-29T08:00:00Z",
+      "documentsComplete": true,
+      "evidenceRefs": [
+        "notation://evidence/fixture/ship-4738"
+      ]
+    },
+    {
+      "shipmentId": "SHIP-4740",
+      "poId": "PO-4740",
+      "quantity": 75,
+      "status": "IN_TRANSIT",
+      "eta": {
+        "earliest": "2026-10-04T08:00:00Z",
+        "latest": "2026-10-04T18:00:00Z"
+      },
+      "lastEventAt": "2026-09-27T08:00:00Z",
+      "documentsComplete": false,
+      "evidenceRefs": [
+        "notation://evidence/fixture/ship-4740"
+      ]
+    },
+    {
+      "shipmentId": "SHIP-4742",
+      "poId": "PO-4742",
+      "quantity": 50,
+      "status": "IN_TRANSIT",
+      "eta": {
+        "earliest": "2026-10-03T08:00:00Z",
+        "latest": "2026-10-03T12:00:00Z"
+      },
+      "lastEventAt": "2026-09-29T09:00:00Z",
+      "documentsComplete": true,
+      "evidenceRefs": [
+        "notation://evidence/fixture/ship-4742"
+      ]
+    }
+  ],
+  "inventory": [
+    {
+      "plantId": "plant-4",
+      "materialId": "pp-homopolymer",
+      "onHand": 160,
+      "reserved": 10,
+      "safetyStock": 100,
+      "asOf": "2026-09-29T12:00:00Z",
+      "evidenceRefs": [
+        "notation://evidence/fixture/inventory-plant4-pp"
+      ]
+    },
+    {
+      "plantId": "plant-7",
+      "materialId": "hdpe-injection",
+      "onHand": 500,
+      "reserved": 50,
+      "safetyStock": 100,
+      "asOf": "2026-09-29T12:00:00Z",
+      "evidenceRefs": [
+        "notation://evidence/fixture/inventory-plant7-hdpe"
+      ]
+    }
+  ],
+  "production": [
+    {
+      "plantId": "plant-4",
+      "materialId": "pp-homopolymer",
+      "startsAt": "2026-09-29T12:00:00Z",
+      "dailyUse": 50,
+      "evidenceRefs": [
+        "notation://evidence/fixture/schedule-plant4-pp"
+      ]
+    },
+    {
+      "plantId": "plant-7",
+      "materialId": "hdpe-injection",
+      "startsAt": "2026-09-29T12:00:00Z",
+      "dailyUse": 35,
+      "evidenceRefs": [
+        "notation://evidence/fixture/schedule-plant7-hdpe"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+name: CARAVAN PO exception wedge
+on:
+  pull_request:
+    paths:
+      - 'src/domain/caravanDesk.ts'
+      - 'src/domain/caravanDesk.test.ts'
+      - 'scripts/caravan-po-exceptions.entry.ts'
+      - 'examples/caravan-po-exceptions.json'
+      - 'docs/CARAVAN_PO_EXCEPTIONS.md'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/caravan-po-exceptions.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  caravan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.1'
+          cache: npm
+      - run: npm ci
+      - name: CARAVAN bounded domain tests
+        run: npx vitest run src/domain/caravanDesk.test.ts --reporter=verbose
+      - name: Build and execute synthetic decision specimen
+        run: npm run --silent caravan:po-exceptions -- examples/caravan-po-exceptions.json > caravan-result.json
+      - name: Require commercial-wedge fixture behavior
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const result = JSON.parse(fs.readFileSync('caravan-result.json','utf8'));
+          if (result.schema !== 'caravan.po-exception-result.v1') throw new Error('wrong schema');
+          if (result.summary.totalPurchaseOrders !== 3) throw new Error('wrong PO count');
+          if (result.summary.critical < 1) throw new Error('fixture must include a critical production threat');
+          if (result.claims.executionAuthority !== false) throw new Error('CARAVAN V1 cannot authorize execution');
+          if (result.claims.etaPredictionPerformed !== false) throw new Error('CARAVAN V1 must not claim ETA prediction');
+          const critical = result.exceptions.find((row) => row.poId === 'PO-4738');
+          if (!critical || critical.severity !== 'CRITICAL') throw new Error('PO-4738 expected critical');
+          NODE
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: caravan-po-exception-evidence
+          if-no-files-found: error
+          path: caravan-result.json
