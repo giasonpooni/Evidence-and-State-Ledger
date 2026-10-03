@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import re
+import stat
 import subprocess
 import sys
 import tempfile
@@ -26,9 +27,22 @@ REPOSITORIES = {
 def clone(repository, revision, destination):
     if not re.fullmatch(r"[0-9a-f]{40}", revision):
         raise ValueError("full source commit pin required")
+    environment = {**os.environ, "GIT_TERMINAL_PROMPT": "0"}
+    token = os.environ.get("INSTRUMENT_REPLAY_TOKEN", "")
+    if token:
+        askpass = destination.parent / ".git-askpass"
+        askpass.write_text("""#!/bin/sh
+case "$1" in
+  *Username*) printf '%s\\n' x-access-token ;;
+  *Password*) printf '%s\\n' "$INSTRUMENT_REPLAY_TOKEN" ;;
+  *) exit 1 ;;
+esac
+""")
+        askpass.chmod(stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+        environment["GIT_ASKPASS"] = str(askpass)
     subprocess.run(["git", "clone", "--no-checkout", "--filter=blob:none",
                     f"https://github.com/giasonpooni/{repository}.git", str(destination)],
-                   check=True, timeout=120)
+                   check=True, timeout=120, env=environment)
     subprocess.run(["git", "--no-replace-objects", "-C", str(destination),
                     "-c", "core.autocrlf=false", "checkout", "--detach", revision],
                    check=True, timeout=120)

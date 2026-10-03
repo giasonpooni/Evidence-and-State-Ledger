@@ -102,6 +102,18 @@ The repository URL and existing `payload-os`, `payload.*`, `notationsos.*`,
 `notation://`, environment-variable and `.payload` storage identities are
 unchanged. Historical records and retained runtime pins are not relabelled.
 
+## Negative-state distinctions
+
+Rather than collapsing every missing or refused result into one null, this one has seven,
+as defined by [the negative-state registry](src/domain/negativeStates.ts): unknown
+is not empty; withdrawn is not false; refused is not false; not assessable is not
+agreement; void is not empty; unanswerable is not absent; and absence is not a zero.
+These are semantic invariants, not counts of files or implementation modules.
+
+Read-only journal and source-result inspection is documented in
+[Retained-result inspection](docs/RETAINED_RESULT_INSPECTION.md). It grants no
+capture, recovery, admission, or release authority.
+
 ## Licence, rights and publication
 
 Existing source notices, rights schedules, contributor/upstream terms and
