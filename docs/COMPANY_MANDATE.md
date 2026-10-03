@@ -1,7 +1,7 @@
 # Notation Systems Inc. mandate
 
 For the current public component inventory and integration boundaries, see the
-[Notation Systems stack map](https://github.com/giasonpooni/Computational-Instrumentation-Workbench/blob/main/docs/STACK.md) and [this component's role](STACK_ROLE.md).
+[Notation Systems stack map](https://github.com/atomtrapping/Notations-Systems-Terminal/blob/main/docs/STACK.md) and [this component's role](STACK_ROLE.md).
 
 Current technical identity and repository naming, 2026-09-20.
 

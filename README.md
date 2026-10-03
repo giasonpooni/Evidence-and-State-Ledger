@@ -4,7 +4,7 @@
 
 [Technical reference](TECHNICAL_REFERENCE.md) · [Component role](docs/STACK_ROLE.md) ·
 [Company mandate](docs/COMPANY_MANDATE.md) ·
-[Notations Engineering Terminal](https://github.com/giasonpooni/Notations-Engineering-Terminal)
+[Notations Engineering Terminal](https://github.com/atomtrapping/Notations-Systems-Terminal)
 
 ## Organization
 
@@ -77,11 +77,11 @@ verification, a licensed customer delivery or a completed frontend integration.
 
 ## Where it fits
 
-[Data Intake](https://github.com/giasonpooni/Provenance-Preserving-Data-Acquisition)
+[Data Intake](https://github.com/atomtrapping/Notations-Data-Intake)
 acquires source material. NET owns investigation/session state and operation
 dispatch; specialist providers own their numerical implementations. State Ledger
 retains and governs the information those activities reference.
-[Frame Mapper](https://github.com/giasonpooni/Geospatial-Systems-Compiler) and the
+[Frame Mapper](https://github.com/atomtrapping/Notations-FrameMapper-RunTime) and the
 geographic viewer consume explicit projections, not unrestricted private stores.
 
 Evidence, operation specifications, execution attempts, results and verification
