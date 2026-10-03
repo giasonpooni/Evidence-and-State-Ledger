@@ -1,6 +1,6 @@
 # Notation Systems Research Ledger
 
-This directory treats the Notation Systems + Cartesian programme as a
+This directory treats the Notation Systems Inc. programme as a
 **longitudinal research apparatus**, not merely a collection of repositories.
 
 The operating loop is:

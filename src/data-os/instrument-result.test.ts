@@ -58,6 +58,50 @@ function respond(value: ReplayBinding = binding()) {
 
 beforeEach(() => { spawn.mockReset(); respond(); });
 
+describe('calibrated process evidence keeps native uncertainty and fault scope', () => {
+  function calibrated() {
+    const payload = JSON.parse(bytes.toString());
+    payload.schema = 'ciw.calibrated-observable-session.v1';
+    payload.steps = [{ runtime_ref: 'gsie', numerical_result_id: RESULT,
+      result: { data: { state_id: 'state:native-gsie', numerical_result_id: 'numerical:native-gsie' } } }];
+    const raw = Buffer.from(JSON.stringify(payload));
+    const value = binding(); value.bundleBytesDigest = byteDigest(raw);
+    value.numericalResultIds.push('state:native-gsie', 'numerical:native-gsie');
+    value.reconciliation = { status: 'held', outputConstraintResidualZero: false };
+    value.processAssessment = { stateResultId: 'result:gsie', stateId: 'state:native-gsie',
+      observabilityResultId: 'result:oit', observabilityStatus: 'observable', reconciliationResultId: 'result:cbsr',
+      faultResultId: 'result:fdir', residualBasis: 'retained_gsie_prior_innovation', detectionStatus: 'statistical_anomaly',
+      isolabilityStatus: 'ambiguous', crossCovariancePolicy: 'unknown', isolatedFault: null };
+    return { raw, value };
+  }
+  it('retains held reconciliation and ambiguous unknown-covariance faults without admitting state', () => {
+    const { raw, value } = calibrated(); respond(value);
+    const review = inspectInstrumentResult(raw, context(), runtime, AT);
+    expect(review.state).toBe('ELIGIBLE_FOR_CANDIDATE_REVIEW');
+    expect(review.candidate!.processAssessment).toEqual(value.processAssessment);
+    expect(review.candidate!.reconciliation.status).toBe('held');
+    expect(review.canonicalAdmission).toBe('REFUSED');
+    expect(spawn.mock.calls[0][2]).toMatchObject({ timeout: 300_000 });
+  });
+  it.each(['missing', 'isolated-unknown', 'unobservable', 'wrong-residual'])('refuses %s process assessment', (defect) => {
+    const { raw, value } = calibrated();
+    if (defect === 'missing') delete value.processAssessment;
+    if (defect === 'isolated-unknown') { value.processAssessment!.isolabilityStatus = 'isolated'; value.processAssessment!.isolatedFault = 'sensor-a'; }
+    if (defect === 'unobservable') (value.processAssessment as unknown as { observabilityStatus: string }).observabilityStatus = 'unobservable';
+    if (defect === 'wrong-residual') (value.processAssessment as unknown as { residualBasis: string }).residualBasis = 'rebuilt-estimator';
+    respond(value);
+    expect(inspectInstrumentResult(raw, context(), runtime, AT).state).toBe('REFUSED');
+  });
+  it.each(['state:native-gsie', 'numerical:native-gsie'])('withdraws wrapped native identity %s before replay', (targetId) => {
+    const { raw, value } = calibrated(); respond(value);
+    const declared = context();
+    declared.retractions = [{ retractionId: 'withdraw-native-state', targetKind: 'NUMERICAL_RESULT', targetId,
+      knownAt: AT, authority: 'role:reviewer', reason: 'Synthetic withdrawn support.' }];
+    expect(inspectInstrumentResult(raw, declared, runtime, AT).state).toBe('REFUSED');
+    expect(spawn).not.toHaveBeenCalled();
+  });
+});
+
 describe('instrument candidate evidence is inspected, never self-admitted', () => {
   it('recomputes policy and invokes an isolated verifier, preserving distinct identities', () => {
     const review = inspectInstrumentResult(bytes, context(), runtime, AT);

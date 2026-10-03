@@ -68,6 +68,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Production dependency vulnerability gate
+        run: npm audit --omit=dev --audit-level=high
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -92,6 +95,7 @@ jobs:
             git diff
             exit 1
           fi
+
 
   browser:
     name: browser tests (desktop and Pixel 7)

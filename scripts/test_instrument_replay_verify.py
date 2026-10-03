@@ -12,6 +12,15 @@ SPEC.loader.exec_module(ADAPTER)
 
 
 class SourcePinTests(unittest.TestCase):
+    def test_schema_selects_only_allowlisted_native_lanes(self):
+        module, required, optional = ADAPTER.workflow_spec('ciw.calibrated-observable-session.v1')
+        self.assertEqual(module, 'ciw.calibrated_observable')
+        self.assertEqual(required, {'ciw', 'fsrt', 'tbrt', 'mcur', 'oit', 'gsie', 'cbsr', 'fdir', 'set'})
+        self.assertEqual(optional, set())
+        for schema in ('arbitrary.module', 'ciw.identified-design-session.v1', None, {}):
+            with self.assertRaises(ValueError):
+                ADAPTER.workflow_spec(schema)
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="esm-pin-test-")
         self.root = Path(self.temporary.name)

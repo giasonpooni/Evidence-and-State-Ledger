@@ -79,7 +79,7 @@ directions.
 ### Needle corpus
 
 1. scientific-computing oscillator — completed;
-2. Cartesian / projectile or world-state workload;
+2. Notations Gaming / projectile or world-state workload;
 3. energy / thermal network;
 4. state-estimation / sensor model.
 
@@ -95,7 +95,7 @@ directions.
 1. oscillator;
 2. thermal/energy;
 3. geospatial;
-4. Cartesian world/asset graph.
+4. Notations Gaming world/asset graph.
 
 A primitive becomes more interesting when the same contract survives these tests
 without acquiring hidden domain-specific assumptions.
@@ -202,12 +202,12 @@ Every important build should answer both:
 Retain hypotheses, experiments, observations, counterexamples and refinements.
 Frequency never automatically promotes a pattern to an axiom or theorem.
 
-### Cartesian Graphics
+### Notations Gaming
 
-Cartesian remains a separate application/IP layer and an adversarial integration
+Notations Gaming remains a separate application/IP layer and an adversarial integration
 test of the commons.
 
-Use Cartesian workloads to stress:
+Use Notations Gaming workloads to stress:
 
 - executable world state;
 - ground truth vs partial observation;
@@ -273,7 +273,7 @@ is established.
 5. Bind Board Transform / Project / Render nodes to morphism identities.
 6. Add a finite cross-representation commutativity witness.
 7. Add an explicit coarse→rich expansion/materialization contract that may return a set/distribution of compatible detailed states rather than one inverse.
-8. Run Needle on Cartesian/projectile.
+8. Run Needle on Notations Gaming/projectile.
 9. Run Needle on energy/thermal network.
 10. Run Needle on state-estimation workload.
 11. Run Board/Parameter Program/Morphism contracts on thermal or energy workload.
