@@ -4,7 +4,41 @@
 
 [Technical reference](TECHNICAL_REFERENCE.md) · [Component role](docs/STACK_ROLE.md) ·
 [Company mandate](docs/COMPANY_MANDATE.md) ·
-[Notations Engineering Terminal](https://github.com/giasonpooni/Notations-Engineering-Terminal)
+[Notations Engineering Terminal](https://github.com/atomtrapping/Notations-Systems-Terminal)
+
+## Organization
+
+**Notation Systems Inc.** is the parent organization in the owner-declared
+parent/child company hierarchy. It is a scientific computing and systems
+engineering company developing computational instruments, software and
+interactive environments for understanding and building physical and virtual
+systems.
+
+Its development direction connects measurement, state estimation and sensor
+fusion, scientific modelling, simulation and execution, from materials and
+machines to interactive worlds. Each repository's implemented capabilities and
+qualification limits remain those documented for that component.
+
+| Activity area | Focus |
+| --- | --- |
+| **Notations Gaming** | Games, graphics, world building, interactive environments and gameplay simulation. |
+| **Notations Manufacturing** | Design, machinery integration, process development, fabrication and production systems. |
+| **Notations Laboratories** | Research and experimental validation in scientific computing, measurement, physics and chemistry modelling, materials and simulation. |
+
+State Ledger is shared evidence and state infrastructure across these companies.
+It retains and governs source material, versioned state, admission and releases;
+domain products and information delivery retain their existing responsibilities.
+
+Evidence, operation, execution and verification identities remain separate.
+Game and simulation state do not acquire industrial evidence or canonical-state
+authority through shared tooling. Cross-company handoffs use explicit contracts
+and the existing admission, execution and release boundaries.
+
+Scientific and industrial applications require calibration, uncertainty,
+repeatability, validation and documented operating envelopes appropriate to the
+application. Simulation alone does not validate a physical model or authorize
+machinery control. Gaming prioritizes interaction, visual quality and play;
+reusable simulations do not make gameplay state scientific evidence.
 
 ## NET micro-tool
 
@@ -43,11 +77,11 @@ verification, a licensed customer delivery or a completed frontend integration.
 
 ## Where it fits
 
-[Data Intake](https://github.com/giasonpooni/Provenance-Preserving-Data-Acquisition)
+[Data Intake](https://github.com/atomtrapping/Notations-Data-Intake)
 acquires source material. NET owns investigation/session state and operation
 dispatch; specialist providers own their numerical implementations. State Ledger
 retains and governs the information those activities reference.
-[Frame Mapper](https://github.com/giasonpooni/Geospatial-Systems-Compiler) and the
+[Frame Mapper](https://github.com/atomtrapping/Notations-FrameMapper-RunTime) and the
 geographic viewer consume explicit projections, not unrestricted private stores.
 
 Evidence, operation specifications, execution attempts, results and verification
@@ -67,6 +101,18 @@ not its technical limitations or policies.
 The repository URL and existing `payload-os`, `payload.*`, `notationsos.*`,
 `notation://`, environment-variable and `.payload` storage identities are
 unchanged. Historical records and retained runtime pins are not relabelled.
+
+## Negative-state distinctions
+
+Rather than collapsing every missing or refused result into one null, this one has seven,
+as defined by [the negative-state registry](src/domain/negativeStates.ts): unknown
+is not empty; withdrawn is not false; refused is not false; not assessable is not
+agreement; void is not empty; unanswerable is not absent; and absence is not a zero.
+These are semantic invariants, not counts of files or implementation modules.
+
+Read-only journal and source-result inspection is documented in
+[Retained-result inspection](docs/RETAINED_RESULT_INSPECTION.md). It grants no
+capture, recovery, admission, or release authority.
 
 ## Licence, rights and publication
 

@@ -61,6 +61,7 @@ export interface InstrumentCandidateInspection {
     runtimePins: ReplayBinding['runtimePins'];
     interpreterSha256: string;
     reconciliation: ReplayBinding['reconciliation'];
+    processAssessment?: ReplayBinding['processAssessment'];
     verification: ReplayBinding['verification'];
   };
   policyDecisions: SourceUseDecision[];
@@ -134,7 +135,8 @@ function applicableWithdrawals(items: readonly InstrumentRetraction[], targets: 
 function preflightEvidence(bytes: Buffer, sources: readonly InstrumentSourcePolicy[]): RetractionTargets {
   if (bytes.length === 0 || bytes.length > MAX_PROJECTION_BYTES) throw new Error('BUNDLE_SIZE_LIMIT');
   const value = JSON.parse(bytes.toString('utf8')) as { source?: { evidence?: unknown }; bundle_digest?: string;
-    steps?: { numerical_result_id?: string; result?: { numerical_result_id?: string; result_artifact?: { numerical_result_id?: string } } }[];
+    steps?: { numerical_result_id?: string; runtime_ref?: string; result?: { numerical_result_id?: string;
+      data?: { numerical_result_id?: string; state_id?: string }; result_artifact?: { numerical_result_id?: string } } }[];
     verification?: { verification_id?: string } };
   const evidence = value?.source?.evidence;
   if (!Array.isArray(evidence) || evidence.length === 0) throw new Error('RETAINED_SOURCE_EVIDENCE_REQUIRED');
@@ -153,7 +155,8 @@ function preflightEvidence(bytes: Buffer, sources: readonly InstrumentSourcePoli
     EVIDENCE: new Set([...declared.keys(), ...declared.values()]),
     BUNDLE: new Set([byteDigest(bytes), ...(typeof value.bundle_digest === 'string' ? [value.bundle_digest] : [])]),
     NUMERICAL_RESULT: new Set(Array.isArray(value.steps) ? value.steps.flatMap((step) =>
-      [step?.numerical_result_id, step?.result?.numerical_result_id, step?.result?.result_artifact?.numerical_result_id]
+      [step?.numerical_result_id, step?.result?.numerical_result_id, step?.result?.result_artifact?.numerical_result_id,
+        step?.result?.data?.numerical_result_id, ...(step?.runtime_ref === 'gsie' ? [step?.result?.data?.state_id] : [])]
         .filter((id): id is string => typeof id === 'string' && id.length > 0)) : []),
     VERIFICATION: new Set(typeof value.verification?.verification_id === 'string' ? [value.verification.verification_id] : []),
   };
@@ -232,6 +235,7 @@ export function inspectInstrumentResult(
       executionIds: binding.executionIds, numericalResultIds: binding.numericalResultIds,
       runtimePins: binding.runtimePins, interpreterSha256: binding.interpreterSha256,
       reconciliation: binding.reconciliation,
+      ...(binding.processAssessment ? { processAssessment: binding.processAssessment } : {}),
       verification: binding.verification,
     } : null,
     policyDecisions, applicableRetractions,

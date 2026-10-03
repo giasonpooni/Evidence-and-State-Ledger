@@ -1,0 +1,98 @@
+name: Industrial source review
+on:
+  push:
+    branches: [feat/industrial-source-review-v1-20260929]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: industrial-review-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: giasonpooni/Geospatial-Systems-Compiler
+          ref: 98bd33bcca22efabe24de8be42642dc561fcfd17
+          path: .integration/gsc
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: giasonpooni/Geospatial-State-Visualization
+          ref: 3dc09db6162ab0c40c056707af70198ef98b90be
+          path: .integration/gsv
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
+      - name: ESM qualification
+        run: |
+          npm ci
+          npx vitest run src/acquisition/industrial-review.test.ts src/data-os/local-intake.test.ts src/domain/admission.test.ts
+          npx tsc --noEmit --strict --skipLibCheck --esModuleInterop --target ES2022 --module esnext --moduleResolution bundler src/acquisition/industrial-review.ts scripts/industrial-review.entry.ts
+      - name: Public component dependencies
+        run: |
+          npm ci --prefix .integration/gsc
+          npm ci --prefix .integration/gsv
+      - name: Raster environment and hermetic tests
+        run: |
+          python3 -m venv /tmp/industrial-python
+          /tmp/industrial-python/bin/pip install rasterio==1.4.3 numpy==2.2.6
+          mkdir -p artifacts/industrial
+          /tmp/industrial-python/bin/pip freeze > artifacts/industrial/python-environment.txt
+          /tmp/industrial-python/bin/python -m unittest discover -s .integration/gsc/scripts/industrial -p 'test_*.py'
+      - name: Acquire real source bytes and recompute raster
+        run: |
+          /tmp/industrial-python/bin/python .integration/gsc/scripts/industrial/capture.py --capture-live --output artifacts/industrial/capture
+          /tmp/industrial-python/bin/python .integration/gsc/scripts/industrial/verify_terrain.py artifacts/industrial/capture --output artifacts/industrial/terrain-recompute.json
+      - name: Existing ESM intake and reinspection
+        run: |
+          mkdir -p .stamp
+          npx esbuild scripts/industrial-review.entry.ts --bundle --platform=node --format=esm --outfile=.stamp/industrial-review.mjs
+          node .stamp/industrial-review.mjs "$PWD/artifacts/industrial/capture" "$PWD/.payload/industrial-qualification" "$PWD/artifacts/industrial/esm-review.json" --allow-internal-qualification
+      - name: Compile ESM-bound review through GSC
+        run: |
+          .integration/gsc/node_modules/.bin/tsx .integration/gsc/scripts/industrial/compile.ts "$PWD/artifacts/industrial/capture" "$PWD/artifacts/industrial/esm-review.json" "$PWD/artifacts/industrial/view" --internal-review-only
+          mkdir .integration/gsv/.industrial-data
+          cp artifacts/industrial/view/* .integration/gsv/.industrial-data/
+      - name: Original and industrial GSV builds
+        working-directory: .integration/gsv
+        run: |
+          npm run build
+          npm run build:industrial
+      - name: Real-data Chromium acceptance
+        working-directory: .integration/gsv
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+          node scripts/test-industrial-browser.mjs
+      - name: Retain private cross-repository evidence
+        if: always()
+        run: |
+          mkdir -p /tmp/industrial-evidence
+          git rev-parse HEAD > /tmp/industrial-evidence/esm-commit.txt
+          git rev-parse HEAD^{tree} > /tmp/industrial-evidence/esm-tree.txt
+          git -C .integration/gsc rev-parse HEAD > /tmp/industrial-evidence/gsc-commit.txt
+          git -C .integration/gsc rev-parse HEAD^{tree} > /tmp/industrial-evidence/gsc-tree.txt
+          git -C .integration/gsv rev-parse HEAD > /tmp/industrial-evidence/gsv-commit.txt
+          git -C .integration/gsv rev-parse HEAD^{tree} > /tmp/industrial-evidence/gsv-tree.txt
+          git archive --format=tar.gz HEAD src/data-os src/acquisition/industrial-review.ts src/acquisition/industrial-review.test.ts scripts/industrial-review.entry.ts package.json package-lock.json > /tmp/industrial-evidence/esm-private-source.tar.gz
+          git -C .integration/gsc archive --format=tar.gz HEAD > /tmp/industrial-evidence/gsc-source.tar.gz
+          git -C .integration/gsv archive --format=tar.gz HEAD > /tmp/industrial-evidence/gsv-source.tar.gz
+          test ! -d artifacts/industrial || cp -r artifacts/industrial /tmp/industrial-evidence/
+          test ! -d .integration/gsv/artifacts/industrial || cp -r .integration/gsv/artifacts/industrial /tmp/industrial-evidence/browser
+          test ! -d .integration/gsv/dist-industrial || tar -czf /tmp/industrial-evidence/viewer-build.tar.gz -C .integration/gsv dist-industrial
+          sha256sum /tmp/industrial-evidence/*.tar.gz > /tmp/industrial-evidence/sha256.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: industrial-review-${{ github.sha }}
+          path: /tmp/industrial-evidence/
+          retention-days: 7
+          if-no-files-found: error

@@ -12,6 +12,8 @@ jobs:
   candidate-evidence:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      INSTRUMENT_REPLAY_TOKEN: ${{ secrets.INSTRUMENT_REPLAY_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,4 +28,32 @@ jobs:
       - name: Source-pin and strict-JSON adversarial checks
         run: python -B scripts/test_instrument_replay_verify.py
       - name: Real pinned PPDA, STFE, GSIE, SET, CIW candidate-evidence replay
+        id: replay
+        if: env.INSTRUMENT_REPLAY_TOKEN != ''
         run: python -B scripts/check_instrument_replay.py
+      - name: Record replay verification identity
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p verification
+          if [ -z "$INSTRUMENT_REPLAY_TOKEN" ]; then
+            printf '%s\n' '{"schema":"payload.instrument-replay-ci.v1","status":"HOLD_EXTERNAL","reasonCode":"AUTHORIZED_PRIVATE_DEPENDENCY_ACCESS_REQUIRED"}' > verification/instrument-replay-status.json
+            {
+              echo '### Pinned replay: HOLD_EXTERNAL'
+              echo
+              echo 'Source-pin and strict-JSON checks passed, but the real pinned replay requires an explicitly provisioned read credential for private dependency checkouts.'
+              echo 'No credential was invented and the replay is not reported as verified.'
+            } >> "$GITHUB_STEP_SUMMARY"
+          elif [ "${{ steps.replay.outcome }}" = "success" ]; then
+            printf '%s\n' '{"schema":"payload.instrument-replay-ci.v1","status":"VERIFIED","reasonCode":null}' > verification/instrument-replay-status.json
+          else
+            printf '%s\n' '{"schema":"payload.instrument-replay-ci.v1","status":"FAILED","reasonCode":"PINNED_REPLAY_FAILED"}' > verification/instrument-replay-status.json
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: instrument-replay-status-${{ github.sha }}
+          path: verification/instrument-replay-status.json
+          retention-days: 7
+          if-no-files-found: error

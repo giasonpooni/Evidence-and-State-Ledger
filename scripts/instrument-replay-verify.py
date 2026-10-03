@@ -93,21 +93,46 @@ def checkout(runtime: dict[str, object], *, standalone_ppda: bool = False) -> Pa
     return path.resolve()
 
 
+def workflow_spec(schema: object) -> tuple[str, set[str], set[str]]:
+    """Only reviewed native lanes select code; artifacts cannot name imports."""
+    if schema == "ciw.telemetry-session.v1":
+        return "ciw.telemetry", {"ciw", "ppda", "stfe", "gsie", "set"}, {"cbsr"}
+    if schema == "ciw.calibrated-observable-session.v1":
+        return "ciw.calibrated_observable", {"ciw", "fsrt", "tbrt", "mcur", "oit", "gsie", "cbsr", "fdir", "set"}, set()
+    raise ValueError("unsupported native candidate schema")
+
+
+def process_assessment(bundle: dict) -> dict:
+    steps = {step["runtime_ref"]: step for step in bundle["steps"]}
+    estimate = steps["gsie"]["result"]["data"]
+    observability = steps["oit"]["result"]["data"]
+    faults = steps["fdir"]["result"]["data"]
+    return {"stateResultId": steps["gsie"]["result_id"], "stateId": estimate["state_id"],
+        "observabilityResultId": steps["oit"]["result_id"], "observabilityStatus": observability["status"],
+        "reconciliationResultId": steps["cbsr"]["result_id"], "faultResultId": steps["fdir"]["result_id"],
+        "residualBasis": faults["residual_basis"], "detectionStatus": faults["detection"]["status"],
+        "isolabilityStatus": faults["isolability"]["status"],
+        "crossCovariancePolicy": faults["isolability"]["cross_covariance_policy"],
+        "isolatedFault": faults["isolability"]["isolated_fault"]}
+
+
 def main() -> dict[str, object]:
     payload = strict_json(sys.stdin.buffer.read(12 * 1024 * 1024 + 1))
     if not isinstance(payload, dict) or set(payload) != {"bundleBase64", "runtime", "pythonSha256", "inspectedAt"}:
         raise ValueError("invalid trusted adapter input")
     if hashlib.sha256(Path(sys.executable).read_bytes()).hexdigest() != payload["pythonSha256"]:
         raise ValueError("interpreter pin mismatch")
-    runtime = payload["runtime"]
-    required = {"ciw", "ppda", "stfe", "gsie", "set"}
-    if not isinstance(runtime, dict) or not required <= set(runtime) or set(runtime) - required - {"cbsr"}:
-        raise ValueError("unsupported or incomplete runtime map")
-    repositories = {role: checkout(pin, standalone_ppda=role == "ppda") for role, pin in runtime.items()}
     bundle_bytes = base64.b64decode(payload["bundleBase64"], validate=True)
     if not 0 < len(bundle_bytes) <= 8 * 1024 * 1024:
         raise ValueError("bundle byte limit")
     bundle = strict_json(bundle_bytes)
+    if not isinstance(bundle, dict):
+        raise ValueError("bundle must be an object")
+    module_name, required, optional = workflow_spec(bundle.get("schema"))
+    runtime = payload["runtime"]
+    if not isinstance(runtime, dict) or not required <= set(runtime) or set(runtime) - required - optional:
+        raise ValueError("unsupported or incomplete runtime map")
+    repositories = {role: checkout(pin, standalone_ppda=role == "ppda") for role, pin in runtime.items()}
     if datetime.fromisoformat(payload["inspectedAt"].replace("Z", "+00:00")) < datetime.fromisoformat(bundle["created_at"].replace("Z", "+00:00")):
         raise ValueError("inspection cannot precede the retained session")
     # No bundle-supplied module paths, import names, subprocess argv or URLs.
@@ -120,14 +145,14 @@ def main() -> dict[str, object]:
         # Never fall back to a globally installed package when a selected
         # checkout lacks the named entry point. Check the parent before a
         # dotted find_spec can import its initializer.
-        for module, root in (("ciw.telemetry", repositories["ciw"] / "src"),
+        for module, root in ((module_name, repositories["ciw"] / "src"),
                              ("state_estimation_testbed.replay", repositories["set"])):
             parent = module.split(".")[0]
             for name in (parent, module):
                 spec = importlib.util.find_spec(name)
                 if spec is None or spec.origin is None or not Path(spec.origin).resolve().is_relative_to(root):
                     raise ValueError("verifier import resolved outside approved source")
-        from ciw.telemetry import replay_session
+        replay_session = importlib.import_module(module_name).replay_session
         from state_estimation_testbed.replay import verify_replay_bundle
 
         replay = replay_session(bundle, repositories={key: path for key, path in repositories.items() if key != "ciw"})
@@ -144,7 +169,9 @@ def main() -> dict[str, object]:
     binding = verification["binding"]
     evidence = [{"artifactRef": ref, "digest": digest}
                 for ref, digest in sorted(binding["evidence_digests"].items())]
-    reconciliations = [step["result"] for step in bundle["steps"] if step["operation_id"] == "cbsr.affine-exact.v1"]
+    calibrated = bundle["schema"] == "ciw.calibrated-observable-session.v1"
+    reconciliations = [step["result"]["data"] if calibrated else step["result"]
+                      for step in bundle["steps"] if step["operation_id"] == "cbsr.affine-exact.v1"]
     if len(reconciliations) > 1:
         raise ValueError("only one declared reconciliation is supported")
     reconciliation = {"status": "not_run", "outputConstraintResidualZero": None}
@@ -157,11 +184,13 @@ def main() -> dict[str, object]:
         # Preserve instrument-issued numerical IDs as well as CIW step IDs.
         # All result bytes have just been exactly reproduced by trusted CIW.
         result = step["result"]
-        for artifact in (result, result.get("result_artifact", {})):
+        for artifact in (result, result.get("result_artifact", {}), result.get("data", {})):
             native = artifact.get("numerical_result_id")
             if isinstance(native, str) and native:
                 numerical_ids.add(native)
-    return {
+        if calibrated and step["runtime_ref"] == "gsie":
+            numerical_ids.add(result["data"]["state_id"])
+    response = {
         "bundleBytesDigest": "sha256:" + hashlib.sha256(bundle_bytes).hexdigest(),
         "bundleDigest": binding["bundle_digest"],
         "evidence": evidence,
@@ -174,6 +203,9 @@ def main() -> dict[str, object]:
         "reconciliation": reconciliation,
         "verification": verification,
     }
+    if calibrated:
+        response["processAssessment"] = process_assessment(bundle)
+    return response
 
 
 if __name__ == "__main__":

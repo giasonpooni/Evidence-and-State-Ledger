@@ -297,7 +297,7 @@ function severityRank(value: ExceptionSeverity): number {
 
 function buildProductionImpact(
   asOf: number,
-  po: PurchaseOrder,
+  _po: PurchaseOrder,
   inventory: InventoryState | undefined,
   production: ProductionDemand | undefined,
   coverageEtaLatest: number | undefined,

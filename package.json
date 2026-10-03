@@ -42,13 +42,15 @@
     "admit": "esbuild scripts/admit.entry.ts --bundle --platform=node --format=esm --outfile=.stamp/admit.mjs --log-level=warning && node .stamp/admit.mjs",
     "instrument:inspect": "esbuild scripts/instrument-result.entry.ts --bundle --platform=node --format=esm --outfile=.stamp/instrument-result.mjs --log-level=warning && node .stamp/instrument-result.mjs",
     "caravan:po-exceptions": "esbuild scripts/caravan-po-exceptions.entry.ts --bundle --platform=node --format=esm --outfile=.stamp/caravan-po-exceptions.mjs --log-level=warning && node .stamp/caravan-po-exceptions.mjs",
+    "research:ledger": "esbuild scripts/research-ledger.entry.ts --bundle --platform=node --format=esm --outfile=.stamp/research-ledger.mjs --log-level=warning && node .stamp/research-ledger.mjs",
+    "instrument:workbench:build": "esbuild scripts/workbench-candidate.entry.ts --bundle --platform=node --format=esm --outfile=.stamp/workbench-candidate.mjs --log-level=warning",
     "mutate:dossier": "node scripts/mutate-ledger.mjs src/db/dossierLedger.mutations.json"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
     "cesium": "1.124.0",
     "drizzle-orm": "^0.45.2",
-    "next": "16.2.6",
+    "next": "16.3.7",
     "pg": "^8.23.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",

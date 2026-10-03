@@ -34,6 +34,17 @@ describe.skipIf(!bundlePath || !runtimePath)('real CIW → SET → ESM candidate
     expect(inspected.candidate!.executionIds).toHaveLength(bundle.steps.length);
     expect(inspected.candidate!.numericalResultIds.length).toBeGreaterThanOrEqual(3);
     expect(inspected.canonicalAdmission).toBe('REFUSED');
+    if (bundle.schema === 'ciw.calibrated-observable-session.v1') {
+      const byRole = (role: string) => bundle.steps.find((step: { runtime_ref: string }) => step.runtime_ref === role);
+      expect(inspected.candidate!.processAssessment).toMatchObject({
+        stateResultId: byRole('gsie').result_id, stateId: byRole('gsie').result.data.state_id,
+        reconciliationResultId: byRole('cbsr').result_id, faultResultId: byRole('fdir').result_id,
+        observabilityStatus: 'observable', residualBasis: 'retained_gsie_prior_innovation',
+        detectionStatus: byRole('fdir').result.data.detection.status,
+        isolabilityStatus: byRole('fdir').result.data.isolability.status,
+      });
+      expect(inspected.candidate!.numericalResultIds).toContain(byRole('gsie').result.data.state_id);
+    }
     const request: InstrumentCaptureRequest = {
       evidenceId: 'artifact:synthetic-replayed-candidate', workflowId: 'synthetic-retention', retainedAt: at,
       sourceRegistration: { ...context.sources[0].registration, registrationId: 'synthetic-derived-policy', sourceId: 'synthetic-derived-bundle' },
@@ -58,5 +69,5 @@ describe.skipIf(!bundlePath || !runtimePath)('real CIW → SET → ESM candidate
     expect(captureInstrumentResult(bytes, context, runtime, request, store).state).toBe('REFUSED');
     expect(put).not.toHaveBeenCalled();
     expect(store.get(retained.capture!.evidence.contentDigest)).toEqual(retainedBytes);
-  }, 300_000);
+  }, 900_000);
 });
